@@ -1,0 +1,5 @@
+In file included from superphase.cpp:7:0:
+vertex_contract.cpp: In member function ‘void VertexContract::contractVertices(DirectedGraph&)’:
+vertex_contract.cpp:152:32: warning: ‘pq_elem’ may be used uninitialized in this function [-Wuninitialized]
+vertex_contract.cpp: In member function ‘void VertexContract::_ZN14VertexContract16contractVerticesER13DirectedGraph.constprop.1498(DirectedGraph&)’:
+vertex_contract.cpp:152:32: warning: ‘pq_elem’ may be used uninitialized in this function [-Wuninitialized]
