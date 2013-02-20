@@ -1,5 +1,0 @@
-list_ranking/listRanking.cpp: In member function ‘void ListRanking::listRank(EulerList&)’:
-list_ranking/listRanking.cpp:144:23: warning: ‘w’ may be used uninitialized in this function [-Wuninitialized]
-list_ranking/listRanking.cpp:146:22: warning: ‘v’ may be used uninitialized in this function [-Wuninitialized]
-list_ranking/listRanking.cpp:187:3: warning: ‘ref’ may be used uninitialized in this function [-Wuninitialized]
-list_ranking/listRanking.cpp:187:3: warning: ‘refDist’ may be used uninitialized in this function [-Wuninitialized]
