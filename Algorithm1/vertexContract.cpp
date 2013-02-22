@@ -1,19 +1,3 @@
-#include<math.h>
-#include<iostream>
-#include<ctime>
-#include <limits>
-#include <stxxl/vector>
-#include <stxxl/priority_queue>
-#include <stxxl/scan>
-#include <stxxl/sort>
-#include <stxxl/map>
-
-#include "config.h"
-#include "graph.cpp"
-#include "mst.h"
-#include "directedGraph.cpp"
-
-
 struct pqVertex
 {
 	Vertex v;
@@ -22,6 +6,18 @@ struct pqVertex
 	pqVertex(){}
 	pqVertex(Vertex v_,unsigned int id_,unsigned int wt_):v(v_),id(id_),edgeWt(wt_){}
 };
+
+struct represVertex
+{
+	unsigned int first;
+	unsigned int second;
+	unsigned int  blockingValue;
+
+	represVertex(){}
+	represVertex(unsigned int fir_,unsigned int sec_,unsigned int value_):first(fir_),second(sec_),blockingValue(value_) {}
+
+};
+	
 
 struct PQCmp 
 {
@@ -47,7 +43,6 @@ public:
 	typedef std::pair<DirectedEdge,edgeItr> structList;
 	typedef stxxl::VECTOR_GENERATOR<structList,VER_PAGE_SIZE,VER_NO_OF_PAGES,VER_BLOCK_SIZE>::result listType;
 	
-	typedef std::pair<int,int> represVertex;
 	typedef stxxl::VECTOR_GENERATOR<represVertex, PAGE_SIZE,NO_OF_PAGES,BLOCK_SIZE,stxxl::striping,PAGER>::result represVector;
 	typedef represVector::iterator represVerItr;
 
@@ -61,7 +56,7 @@ public:
 	VertexContract(){}
 	VertexContract(unsigned int num_e):list(2*num_e){}
 
-	void contractVertices(DirectedGraph &dag);
+	void contractVertices(DirectedGraph &dag,represVector &res);
 	void createList(DirectedGraph &dag);
 	//void replaceEdge(graph &g);
 
@@ -69,22 +64,22 @@ public:
 
 struct myCmpFir
 {
-  	VertexContract::represVertex min_value() const { 
-		return VertexContract::represVertex(std::numeric_limits<int>::min(),0); };
-	VertexContract::represVertex max_value() const { 
-		return VertexContract::represVertex(std::numeric_limits<int>::max(),0); };
-	bool operator () (const VertexContract::represVertex & a, const VertexContract::represVertex & b) const {
+  	represVertex min_value() const { 
+		return represVertex(std::numeric_limits<unsigned int>::min(),0,0); };
+	represVertex max_value() const { 
+		return represVertex(std::numeric_limits<unsigned int>::max(),0,0); };
+	bool operator () (const represVertex & a, const represVertex & b) const {
 		return a.first < b.first || (a.first == b.first && a.second < b.second);
 	}
 };
 
 struct myCmpSec
 {
-  	VertexContract::represVertex min_value() const { 
-		return VertexContract::represVertex(std::numeric_limits<int>::min(),0); };
-	VertexContract::represVertex max_value() const { 
-		return VertexContract::represVertex(std::numeric_limits<int>::max(),0); };
-	bool operator () (const VertexContract::represVertex & a, const VertexContract::represVertex & b) const {
+  	represVertex min_value() const { 
+		return represVertex(std::numeric_limits<unsigned int>::min(),0,0); };
+	represVertex max_value() const { 
+		return represVertex(std::numeric_limits<unsigned int>::max(),0,0); };
+	bool operator () (const represVertex & a, const represVertex & b) const {
 		return a.second < b.second || (a.second == b.second && a.first < b.first);
 	}
 };
@@ -189,7 +184,7 @@ void VertexContract::createList(DirectedGraph &dag)
 	}
 	
 }
-void VertexContract::contractVertices(DirectedGraph &dag)
+void VertexContract::contractVertices(DirectedGraph &dag,represVector &res )
 {
 
 	typedef stxxl::PRIORITY_QUEUE_GENERATOR < pqVertex, PQCmp, 10 * 1024 * 1024, PQUEUE_MAX_SIZE/sizeof(pqVertex)> pqGen;	
@@ -198,7 +193,7 @@ void VertexContract::contractVertices(DirectedGraph &dag)
 	
 	stxxl::read_write_pool<blockType> pool((PQUEUE_MEM_POOL / 2) / blockType::raw_size, (PQUEUE_MEM_POOL / 2) / blockType::raw_size);
         pqType pqFwdProcess(pool);
-	pqVertex *pqElem;
+	pqVertex *pqElem = NULL;
 
 	createList(dag);
 	edgeItr rootItr,e_itr,temp;
@@ -226,7 +221,8 @@ void VertexContract::contractVertices(DirectedGraph &dag)
 		pqFwdProcess.pop();
 	
 		newRepres.first=(pqElem->v).getVertexId();
-		newRepres.second=pqElem->id;
+		newRepres.second=pqElem->id;	
+		newRepres.blockingValue = (pqElem->v).getBlockingValue();
 		resultVector.push_back(newRepres);
 
 		for(temp=e_itr+1;temp!=list.end() && temp->getSrc() == e_itr->getDst() && !(*temp==*(temp-1));temp++)
@@ -248,6 +244,7 @@ void VertexContract::contractVertices(DirectedGraph &dag)
 	
 		newRepres.first=(pqElem->v).getVertexId();
 		newRepres.second=pqElem->id;
+		newRepres.blockingValue = (pqElem->v).getBlockingValue();
 		resultVector.push_back(newRepres);
 	}
 			
@@ -263,6 +260,10 @@ void VertexContract::contractVertices(DirectedGraph &dag)
 		
 		STXXL_MSG(" "<<itr->first<<" --> " <<itr->second);
 	}
+
+
+	res = resultVector;
+	
 	
 	
 }
@@ -272,7 +273,7 @@ void VertexContract::contractVertices(DirectedGraph &dag)
 
 
 
-
+/*
 int main()
 {
 	unsigned int num_v,num_e;
@@ -308,8 +309,9 @@ int main()
     	Timer.reset();
 	Timer.start();
 
+	VertexContract::represVector res;
 
-	vc.contractVertices(dag);
+	vc.contractVertices(dag,res);
 	
 	STXXL_MSG("Vertex Contraction elapsed time: " << (Timer.mseconds() / 1000.) <<
               " seconds : " << (double(num_v) / (Timer.mseconds() / 1000.)) << " edges per sec");
@@ -317,4 +319,4 @@ int main()
         std::cout << stxxl::stats_data(*stxxl::stats::get_instance()) - stats_begin;
 	return 0;
 }
-
+*/

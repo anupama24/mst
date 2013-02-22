@@ -1,0 +1,7 @@
+In file included from superphase.cpp:4:0:
+graph/../data_structures/vertex.h: In member function ‘void VertexContract::contractVertices(DirectedGraph&, VertexContract::represVector&)’:
+graph/../data_structures/vertex.h:56:9: warning: ‘pqElem’ may be used uninitialized in this function [-Wuninitialized]
+vertexContract.cpp:196:12: note: ‘pqElem’ was declared here
+graph/../data_structures/vertex.h: In member function ‘void VertexContract::_ZN14VertexContract16contractVerticesER13DirectedGraphRN5stxxl6vectorI12represVertexLj1ENS2_9lru_pagerILj1EEELj1048576ENS2_8stripingEyEE.constprop.1625(DirectedGraph&, VertexContract::represVector&)’:
+graph/../data_structures/vertex.h:56:9: warning: ‘pqElem’ may be used uninitialized in this function [-Wuninitialized]
+vertexContract.cpp:196:12: note: ‘pqElem’ was declared here

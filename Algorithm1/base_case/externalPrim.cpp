@@ -22,7 +22,7 @@ void ExternalPrim::buildMST(Graph &g,MST &mst)
 	STXXL_MSG("stxxl::pq block size: " << blockType::raw_size << " bytes");	
 	STXXL_MSG("Internal memory consumption of the priority queue: " << pqMST.mem_cons() << " bytes");
      
-	mst.clearMST();
+	//mst.clearMST();
 
 	for(v_itr = g.getFirstVertex(); !(g.checkVertexListEnd(v_itr)) && g.checkEdgeListEnd(v_itr->second); v_itr++);
 	
@@ -62,11 +62,11 @@ void ExternalPrim::buildMST(Graph &g,MST &mst)
 		
 			
 	}
-	while(mst.getMSTSize() < (unsigned int) g.getNoVertices()-1);
+	while(!pqMST.empty() && mst.getMSTSize() < (unsigned int) mst.getNoVertices()-1);
 	mst.setNoEdges(g.getNoVertices()-1);
 }
 
-
+/*
 
 int main()
 {
@@ -100,4 +100,4 @@ int main()
 	return 0;
 }
 
-
+*/

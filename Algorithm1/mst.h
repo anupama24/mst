@@ -14,7 +14,7 @@ class MST
 public:
 
 	MST(){}
-	MST(int num_v,int num_e):mstTree(num_v),noVertices(num_v),noEdges(num_e)
+	MST(int num_v):mstTree(num_v),noVertices(num_v),noEdges(num_v-1)
 	{}
 
 	void clearMST()
@@ -72,7 +72,7 @@ void MST::printMST()
 	
 	for(itr=mstTree.begin();itr!=mstTree.end();itr++)
 	{
-		STXXL_MSG(" (" <<(itr->getSrc())<<", " <<(itr->getDst())<<", "<<(itr->getEdgeWt())<<") ");
+		STXXL_MSG(" (" <<(itr->getOrigSrc())<<", " <<(itr->getOrigDst())<<", "<<(itr->getEdgeWt())<<") ");
 		
 	}
 
