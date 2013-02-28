@@ -1,6 +1,6 @@
 #ifndef IMPORTEXPORT_H
 #define IMPORTEXPORT_H
-
+#endif 
 
 /**
    Imports an EdgeVector from an istream.
@@ -14,32 +14,32 @@
 
    sourceX and targetX are node indizes; the first used node index should be 0.
 */
-void importEdgeVector(std::istream &in,graph &g)
+void importEdgeVector(const std::string &filename,Graph &g)
 {
     int noOfNodes,noOfEdges;
-    edge *Edge;
+    Edge *edge;
 
+    std::ifstream in( filename.c_str() );
     STXXL_MSG("Reading graph from istream");
     in >> noOfNodes >> noOfEdges;
 
-    g.edge_list.clear();
+    g.clearList();
     for (int i=0; i<noOfEdges; i++) {
-	int source,target;
-	int weight;
+	unsigned int source,target,weight;
 	
 	in >> source >> target >> weight;
 	
-	Edge = new edge(i+1,randomNodeID(),randomEdgeWeight());
-	g.edge_list.push_back(*Edge);
-	g.edge_list.push_back(*Edge);
-	g.edge_list.back().swap();
+	edge = new Edge(source,target,weight);
+	g.addEdge(*edge);
+	g.addEdge(*edge);
+	g.swapEdge();
     }
     
-    stxxl::sort(g.edge_list.begin(),g.edge_list.end(),cmp_edge_wt(),INTERNAL_MEMORY_FOR_SORTING);
-    edge_itr NewEnd = std::unique(g.edge_list.begin(),g.edge_list.end());
-    g.edge_list.resize(NewEnd - g.edge_list.begin());
+    stxxl::sort(g.getFirstEdge(),g.getEdgeListEnd(),myCmpEdgeWt(),INTERNAL_MEMORY_FOR_SORTING);
+    Graph::edgeItr NewEnd = std::unique(g.getFirstEdge(),g.getEdgeListEnd());
+    g.resizeList(NewEnd,g.getFirstEdge());
 	
-    STXXL_MSG(" Edge list: "<<g.edge_list.size());    
+    STXXL_MSG(" Edge list: "<<g.getEdgeListSize());    
 }
 
 
@@ -59,7 +59,7 @@ void importEdgeVector(std::istream &in,graph &g)
    Each 32-bit number (sourceX, targetX, weightX) should be represented by 4 chars
    and there should be no spaces and newlines after the number of edges.
    If necessary, several files are used so that the file size limit isn't exceeded.
-*/
+
 void importEdgeVectorCompressed(const std::string &filename,graph &g)
 {
     static const int edgesPerFile = 150000000;
@@ -104,7 +104,7 @@ void importEdgeVectorCompressed(const std::string &filename,graph &g)
     STXXL_MSG(" Edge list size: "<<g.edge_list.size()); 
    
 }
-
+*/
 
 /**
    Exports an EdgeVector to an ostream.
@@ -121,18 +121,16 @@ void importEdgeVectorCompressed(const std::string &filename,graph &g)
    Each adjacency list is a list of pairs: node1 weight1 node2 weight2 ...
    The first used node index is 1.
 */
-void exportEdgeVector(std::ostream &out,graph &g)
+void exportEdgeVector(std::ostream &out,Graph &g)
 {
     
-    out <<g.noOfVertices()<<std::endl<<g.noOfEdges();
+    out <<g.getNoVertices()<<std::endl<<g.getNoEdges()<<std::endl;
 
-    typedef typename graph::edge_itr edge_itr;
- 
-    edge_itr itr;
+    Graph::edgeItr itr;
 	
-    for(itr=edge_list.begin();itr!=edge_list.end();itr++)
+    for(itr=g.getFirstEdge(); !(g.checkEdgeListEnd(itr));itr++)
     { 
-	out <<(itr->src)<<"\t" <<(itr->dst)<<"\t"<<(itr->edge_wt)<<endl;
+	out <<(itr->getSrc())<<"\t" <<(itr->getDst())<<"\t"<<(itr->getEdgeWt())<<std::endl;
     }
     out << std::endl << "-1" << std::endl;
     
@@ -154,7 +152,7 @@ void exportEdgeVector(std::ostream &out,graph &g)
    Each 32-bit number (sourceX, targetX, weightX) is represented by 4 chars
    and there are no spaces and newlines after the number of edges.
    If necessary, several files are used so that the file size limit isn't exceeded.
-*/
+
 void exportEdgeVectorCompressed(const std::string &filename, EdgeVector<> &edges)
 {
     static const EdgeCount edgesPerFile = 150000000;
@@ -199,19 +197,19 @@ void exportEdgeVectorCompressed(const std::string &filename, EdgeVector<> &edges
     out.close();
 }
 
-
+*/
 /**
    Returns the number of nodes of the graph which is stored in the file
    with the given name.
 */
-int noOfNodesInFile(const std::string &filename,int noOfEdges)
+int noOfNodesInFile(const std::string &filename,unsigned int &noOfEdges)
 {
     std::ifstream inFile(filename.c_str());
     if ((inFile.peek() == 'a') || (inFile.peek() == 'c')) {
 	char dummy;
 	inFile >> dummy;
     }
-    NodeCount noOfNodes;
+    unsigned int noOfNodes;
     inFile >> noOfNodes;
     inFile >> noOfEdges;
     return noOfNodes;

@@ -56,38 +56,57 @@ void DirectedGraph::createGraph(Graph &g,MST &mst)
 	
 }
 
-void DirectedGraph::detectCycle()
+void DirectedGraph::detectCycle(MST &mst)
 {
 		//dirVertexItr vItr;
-		dirEdgeItr eItr,NewEnd;
+		dirEdgeItr eItr,itr,NewEnd;
 		dirEdgeType cycleEdges;
-			
+		Graph::edgeItr mstItr;			
+
 		stxxl::sort(dirEdgeList.begin(),dirEdgeList.end(),dirCmpWt(),INTERNAL_MEMORY_FOR_SORTING);
 		roots.clear();
 		cycleEdges.clear();
 
 		for(eItr=dirEdgeList.begin();eItr!=dirEdgeList.end();eItr++)
 		{
-
 			if((eItr+1)!=dirEdgeList.end() && eItr->equals(*(eItr+1)))
 			{
 				cycleEdges.push_back(*(eItr+1));	
 				roots.push_back(*eItr);
 				eItr++;					
 			}
+			
+				
 		}
 		
 		//STXXL_MSG("Detect");	
 		
 		stxxl::sort(dirEdgeList.begin(),dirEdgeList.end(),dirCmpEdge(),INTERNAL_MEMORY_FOR_SORTING);	
+		stxxl::sort(mst.mstBegin(),mst.mstEnd(),myCmpEdgeWt(),INTERNAL_MEMORY_FOR_SORTING);	
 		
 		if(!cycleEdges.empty())
 		{
-			for(eItr=cycleEdges.begin();eItr!=cycleEdges.end();eItr++)
+			stxxl::sort(cycleEdges.begin(),cycleEdges.end(),dirCmpEdge(),INTERNAL_MEMORY_FOR_SORTING);
+			itr = cycleEdges.begin();
+			mstItr = mst.mstBegin();
+
+			for(eItr=dirEdgeList.begin();eItr!=dirEdgeList.end() && itr!= cycleEdges.end();eItr++,mstItr++)
 			{
-				NewEnd = std::remove(dirEdgeList.begin(),dirEdgeList.end(),*eItr);
-				dirEdgeList.resize(NewEnd - dirEdgeList.begin());
+				if(*eItr==*itr)
+				{
+					eItr->setSrc(std::numeric_limits<unsigned int>::max());
+					eItr->setDst(std::numeric_limits<unsigned int>::max());
+					eItr->setEdgeWt(std::numeric_limits<unsigned int>::max());
+					mst.removeEdge(mstItr);
+					itr++;
+					
+				}
+				
 			}
+			stxxl::sort(dirEdgeList.begin(),dirEdgeList.end(),dirCmpEdge(),INTERNAL_MEMORY_FOR_SORTING);	
+			NewEnd = std::unique(dirEdgeList.begin(),dirEdgeList.end());			
+			dirEdgeList.resize(NewEnd - dirEdgeList.begin());
+			mst.clean();
 		}
 	
 		//STXXL_MSG("Detect");

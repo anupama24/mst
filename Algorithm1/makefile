@@ -13,8 +13,8 @@ CPPFLAGS        += -O3 -Wall -g -DFOO=BAR
 
 # build your application
 # (my_example.o is generated from my_example.cpp automatically)
-mst: superphase.cpp
-	$(CXX) $(CXXFLAGS) $(CPPFLAGS) $(LDFLAGS) superphase.cpp -o $@ $(LDLIBS)
+mst: main.cpp
+	$(CXX) $(CXXFLAGS) $(CPPFLAGS) $(LDFLAGS) main.cpp -o $@ $(LDLIBS)
 
 clean:
 	rm -f mst *~ 

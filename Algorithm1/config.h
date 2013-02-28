@@ -1,5 +1,6 @@
 #include<math.h>
 #include<iostream>
+#include<fstream>
 #include<ctime>
 #include <limits>
 #include <stxxl/vector>

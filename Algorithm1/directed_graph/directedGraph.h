@@ -57,7 +57,7 @@ public:
 	void setNoVertices(unsigned int numV);
 	void setNoEdges(unsigned int numE);
 	void createGraph(Graph &g,MST &mst);
-	void detectCycle();
+	void detectCycle(MST &mst);
 	void printGraph();
 	void copyEdgeList(dirEdgeType &list);
 	dirEdgeItr getFirstRoot();

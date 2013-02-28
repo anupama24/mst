@@ -1,9 +1,4 @@
-#include "config.h"
-#include "graph/graph.cpp"
-#include "mst.h"
-#include "directed_graph/directedGraph.cpp"
-#include "vertexContract.cpp"
-#include "base_case/externalPrim.cpp"
+
 
 
 /* reduceGraph
@@ -286,7 +281,7 @@ void replaceEdge(Graph &g,VertexContract::represVector &result)
 	
 
 
-void superphaseAlgo(Graph &g,int count,MST &mst)
+void superphaseAlgo(Graph &g,int count,MST &mst,unsigned int limit)
 {
 	VertexContract::represVector list,result;	
 	Graph gnew;
@@ -294,11 +289,11 @@ void superphaseAlgo(Graph &g,int count,MST &mst)
 	int logNi,blockValue;
 	
 	float Ni = 2,prevNi,rtNi,lgNi;
-	float B = (float) BLOCK_SIZE/(float)(sizeof(Edge) + sizeof(Vertex));
+	//float B = (float) BLOCK_SIZE/(float)(sizeof(Edge) + sizeof(Vertex));
 
 	DirectedGraph dag(g.getNoVertices(),g.getNoEdges());
 	dag.createGraph(g,mst);
-	dag.detectCycle();
+	dag.detectCycle(mst);
 			
 	VertexContract vc(dag.getNoEdges());
 	vc.contractVertices(dag,result);
@@ -322,7 +317,7 @@ void superphaseAlgo(Graph &g,int count,MST &mst)
 		for(int j= 0; j< logNi;j++)
 		{
 			dag.createGraph(gnew,mst);
-			dag.detectCycle();
+			dag.detectCycle(mst);
 			
 			//VertexContract vc(dag.getNoEdges());
 			vc.contractVertices(dag,result);
@@ -339,18 +334,14 @@ void superphaseAlgo(Graph &g,int count,MST &mst)
 		replaceEdge(g,list);
 		prevNi= Ni;
 		Ni= prevNi * sqrt(prevNi);
-		if(g.getNoVertices() < (g.getNoEdges()/B) || g.getNoEdges() == 0)
+		if(g.getNoVertices() < limit || g.getNoEdges() == 0)
 			return;
 		
 	}
 
-	
-	
-	
-
 }
 
-			
+/*			
 	
 int main()
 {
@@ -374,9 +365,12 @@ int main()
 	t = log10((float) num_v*B / (float) num_e)/log10(2.0);
 	c = log10(t) / log10(1.5);
 	int count = ceil(c);
+	int upperLimit = ceil(num_e/ B);
+
+
 	float M = (20 * 1024 * 1024)/(float)(sizeof(Edge));
 	float N = num_v+num_e;
-	STXXL_MSG("N: "<<N<<" M: "<<M<<" B: "<<B<<"Sizeof Edge: "<<sizeof(Edge));
+	STXXL_MSG("N: "<<N<<" M: "<<M<<" B: "<<B<<" Sizeof Edge: "<<sizeof(Edge));
 
 	stxxl::stats_data stats_begin(*stxxl::stats::get_instance());
 
@@ -384,18 +378,13 @@ int main()
 
 	if(N > (M/2))
 	{
-
 		
 		Timer.start();
-
-		superphaseAlgo(g,count,mst);
+		superphaseAlgo(g,count,mst,upperLimit);
 		STXXL_MSG("Elapsed time: " << (Timer.mseconds() / 1000.) <<
               " seconds : " << (double(g.getNoEdges()) / (Timer.mseconds() / 1000.)) << " edges per sec");
-
 	        std::cout << stxxl::stats_data(*stxxl::stats::get_instance()) - stats_begin;
-		
-	
-	
+
 	}
 
 	
@@ -417,4 +406,4 @@ int main()
 	
 	return 0;
 }
-
+*/

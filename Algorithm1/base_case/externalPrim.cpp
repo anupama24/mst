@@ -63,7 +63,7 @@ void ExternalPrim::buildMST(Graph &g,MST &mst)
 			
 	}
 	while(!pqMST.empty() && mst.getMSTSize() < (unsigned int) mst.getNoVertices()-1);
-	mst.setNoEdges(g.getNoVertices()-1);
+	//mst.setNoEdges(g.getNoVertices()-1);
 }
 
 /*

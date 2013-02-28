@@ -2,6 +2,7 @@
 #define PARAMETERS_H
 
 
+
 /**
    Parses the command-line arguments and provides methods to get the arguments
    in a convenient way.
@@ -11,6 +12,10 @@ class Parameters
  public:
     Parameters( int argc, char *argv[] )
     {
+	_inputSpecified = false;
+	_noOfNodes = std::numeric_limits<unsigned int>::max();
+	_noOfEdges = std::numeric_limits<unsigned int>::max();
+	
 	if (argc < 2) {
 	    std::cerr << "Too few arguments !" << std::endl << std::endl;
 	    usage(-1);
@@ -33,6 +38,7 @@ class Parameters
 		_noOfNodes = atof(argv[index++]);
 		_noOfEdges = atof(argv[index++]);
 		_inputSpecified = true;
+		_randomGraph = true;
 		continue;
 	    }
 	    
@@ -76,16 +82,18 @@ class Parameters
 	}
     }
 
-    int noOfNodes() const {return _noOfNodes;}
-    int noOfEdges() const {return noOfEdges;}
+    bool randomGraph() const {return _randomGraph;}
+    unsigned int noOfNodes() const {return _noOfNodes;}
+    unsigned int noOfEdges() const {return _noOfEdges;}
     
     std::string importInputFilename() const {return _importInputFilename;}
     std::string outputFilename() const {return _outputFilename;}
     	
  private:
     bool _inputSpecified;
-    int _noOfNodes;
-    int _noOfEdges;
+    bool _randomGraph;
+    unsigned int _noOfNodes;
+    unsigned int _noOfEdges;
 
     std::string _importInputFilename;
     std::string _outputFilename;
