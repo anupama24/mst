@@ -62,23 +62,35 @@ void DirectedGraph::detectCycle(MST &mst)
 		dirEdgeItr eItr,itr,NewEnd;
 		dirEdgeType cycleEdges;
 		Graph::edgeItr mstItr;			
+		dirEdgeType rev = dirEdgeList;
 
 		stxxl::sort(dirEdgeList.begin(),dirEdgeList.end(),dirCmpWt(),INTERNAL_MEMORY_FOR_SORTING);
+		stxxl::sort(rev.begin(),rev.end(),dirCmpWtRev(),INTERNAL_MEMORY_FOR_SORTING);
+	
 		roots.clear();
 		cycleEdges.clear();
-
-		for(eItr=dirEdgeList.begin();eItr!=dirEdgeList.end();eItr++)
+		
+		/*for(eItr=dirEdgeList.begin(),itr=rev.begin(); eItr!=dirEdgeList.end() && itr!= rev.end(); eItr++,itr++)
 		{
-			if((eItr+1)!=dirEdgeList.end() && eItr->equals(*(eItr+1)))
+			STXXL_MSG(eItr->getSrc()<<" "<<eItr->getDst()<<" "<<eItr->getEdgeWt()<<"\t "<<itr->getSrc()<<" "<<itr->getDst()<<" "<<itr->getEdgeWt());
+		}*/
+		for(eItr=dirEdgeList.begin(),itr=rev.begin(); eItr!=dirEdgeList.end(); eItr++)
+		{
+			while(itr!=rev.end() && ((itr->getDst() < eItr->getSrc() && itr->getEdgeWt() == eItr->getEdgeWt()) || itr->getEdgeWt() < eItr->getEdgeWt()))
+				itr++;
+			if(itr!=rev.end() && eItr->equals(*itr) && eItr->getSrc() < eItr->getDst())
 			{
-				cycleEdges.push_back(*(eItr+1));	
+				cycleEdges.push_back(*itr);	
 				roots.push_back(*eItr);
-				eItr++;					
+				itr++;
+						
 			}
 			
 				
+			
+				
 		}
-		
+		rev.clear();
 		//STXXL_MSG("Detect");	
 		
 		stxxl::sort(dirEdgeList.begin(),dirEdgeList.end(),dirCmpEdge(),INTERNAL_MEMORY_FOR_SORTING);	
@@ -105,7 +117,7 @@ void DirectedGraph::detectCycle(MST &mst)
 			}
 			stxxl::sort(dirEdgeList.begin(),dirEdgeList.end(),dirCmpEdge(),INTERNAL_MEMORY_FOR_SORTING);	
 			NewEnd = std::unique(dirEdgeList.begin(),dirEdgeList.end());			
-			dirEdgeList.resize(NewEnd - dirEdgeList.begin());
+			dirEdgeList.resize((NewEnd -1)- dirEdgeList.begin());
 			mst.clean();
 		}
 	
@@ -133,11 +145,13 @@ void DirectedGraph::detectCycle(MST &mst)
 		*/	
 		
 		noEdges=dirEdgeList.size();
-		//noVertices = dirVertexList.size();
-		STXXL_MSG("No of vertices: "<<noVertices);
-		STXXL_MSG("Number of edges: "<<noEdges<<std::endl);
-		STXXL_MSG("Cycle detected");
+		stxxl::sort(roots.begin(),roots.end(),dirCmpEdge(),INTERNAL_MEMORY_FOR_SORTING);
 		//printGraph();
+		//noVertices = dirVertexList.size();
+		//STXXL_MSG("No of vertices: "<<noVertices);
+		STXXL_MSG("Number of edges: "<<noEdges<<std::endl<<" No of components: "<<roots.size());
+		STXXL_MSG("Cycle detected");
+		
 		
 }
 

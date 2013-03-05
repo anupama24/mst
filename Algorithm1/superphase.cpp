@@ -149,7 +149,7 @@ void cleanEdges(Graph &g)
 void minBlockingValue(Graph &g,VertexContract::represVector &list)
 {
 	stxxl::sort(list.begin(),list.end(),myCmpSec(), INTERNAL_MEMORY_FOR_SORTING);
-
+	stxxl::sort(g.getFirstVertex(),g.getVertexListEnd(),Graph::myCmpVer(g), INTERNAL_MEMORY_FOR_SORTING);
 	VertexContract::represVerItr it1,it2;
 	unsigned int min,curr_v;
 	typedef typename Graph::vertexItr vertexItr;
@@ -157,7 +157,7 @@ void minBlockingValue(Graph &g,VertexContract::represVector &list)
 	vertexItr vItr,tempItr;
 	
 	Edge e;
-	STXXL_MSG("Size of vertex main: "<<g.getVertexListSize());
+	STXXL_MSG("Size of vertex main: "<<g.getVertexListSize()<<" List size: "<<list.size());
 
 	/*for(vItr=g.vmain.begin();vItr!= g.vmain.end();vItr++)
 	{
@@ -167,11 +167,12 @@ void minBlockingValue(Graph &g,VertexContract::represVector &list)
 	}*/	
 
 
-	vItr = g.getFirstVertex();
-	for(it1=list.begin();it1!=list.end();)
+	
+	for(vItr = g.getFirstVertex(),it1=list.begin();it1!=list.end();)
 	{
 		//STXXL_MSG("it1->second"<<(it1->second));
-		for(; !(g.checkVertexListEnd(vItr)) && (vItr->first).getVertexId() != it1->second; vItr++);
+		for(;!(g.checkVertexListEnd(vItr)) && (vItr->first).getVertexId() != it1->second; vItr++);
+
 		min = (vItr->first).getBlockingValue();
 		curr_v = it1->second;
 
@@ -188,12 +189,17 @@ void minBlockingValue(Graph &g,VertexContract::represVector &list)
 
 	}
 
-	stxxl::sort(list.begin(),list.end(),myCmpFir(), INTERNAL_MEMORY_FOR_SORTING);
-	tempItr = g.getFirstVertex();
+	STXXL_MSG("Min blocking value set");
 
-	for(it1=list.begin();it1!=list.end();it1++)
+	stxxl::sort(list.begin(),list.end(),myCmpFir(), INTERNAL_MEMORY_FOR_SORTING);
+	
+
+	for(tempItr = g.getFirstVertex(),it1=list.begin(); it1!=list.end(); it1++)
 	{
 		for(; !(g.checkVertexListEnd(tempItr)) && (tempItr->first).getVertexId() != it1->first; tempItr++);
+		
+		//STXXL_MSG("List: "<<it1->first<<" Vertex: "<<(tempItr->first).getVertexId());
+ 
 		(tempItr->first).setVertexId(std::numeric_limits<unsigned int>::max());
 		(tempItr->first).setBlockingValue(std::numeric_limits<unsigned int>::max());
 		tempItr->second = g.getEdgeListEnd();
@@ -201,18 +207,29 @@ void minBlockingValue(Graph &g,VertexContract::represVector &list)
 	}
 	
 	stxxl::sort(g.getFirstVertex(),g.getVertexListEnd(),Graph::myCmpVer(g), INTERNAL_MEMORY_FOR_SORTING);
+	vertexItr NewEnd;
 	
-	vertexItr NewEnd = std::unique(g.getFirstVertex(),g.getVertexListEnd());
-	g.resizeVertexList((NewEnd -1),g.getFirstVertex());
+	for(vItr=g.getFirstVertex();!(g.checkVertexListEnd(vItr));vItr++)
+	{
+		if((vItr->first).getVertexId() == std::numeric_limits<unsigned int>::max() && (vItr->first).getBlockingValue() == std::numeric_limits<unsigned int>::max() && vItr->second==g.getEdgeListEnd())
+		{
+			NewEnd = vItr;
+			break;
+		}	
+			
+	}
+
+	//vertexItr NewEnd = std::unique(g.getFirstVertex(),g.getVertexListEnd());
+	g.resizeVertexList(NewEnd,g.getFirstVertex());
 	g.setNoVertices(g.getVertexListSize());
 
 	STXXL_MSG("Size of vertex main: "<<g.getVertexListSize());
-	/*for(vItr=getFirstVertex();!(g.checkVertexListEnd(vItr));vItr++)
+	for(vItr=g.getFirstVertex();!(g.checkVertexListEnd(vItr));vItr++)
 	{
 		STXXL_MSG(" V: "<<(vItr->first).getVertexId()<<" & "<<(vItr->first).getBlockingValue());
 			
-	}*/
-	STXXL_MSG("Blocking value set");
+	}
+	
 
 }
 
@@ -312,7 +329,7 @@ void superphaseAlgo(Graph &g,int count,MST &mst,unsigned int limit)
 		lgNi = log10(rtNi) / log10(2.0);
 		logNi = ceil(lgNi);
 	
-		STXXL_MSG("GNEW: Vertices "<<gnew.getNoVertices()<<" Edge: "<<gnew.getNoEdges()<<" logNi:"<<logNi<<"Block Value: "<<blockValue);
+		STXXL_MSG("GNEW: Vertices "<<gnew.getNoVertices()<<" Edge: "<<gnew.getNoEdges()<<" logNi:"<<logNi<<" Block Value: "<<blockValue);
 
 		for(int j= 0; j< logNi;j++)
 		{

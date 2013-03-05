@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
 
     	stxxl::timer Timer;
 
-	if(N > (M/2))
+	//if(N > (M/4))
 	{
 		
 		Timer.start();

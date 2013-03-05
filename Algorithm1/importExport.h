@@ -20,25 +20,27 @@ void importEdgeVector(const std::string &filename,Graph &g)
     Edge *edge;
 
     std::ifstream in( filename.c_str() );
-    STXXL_MSG("Reading graph from istream");
     in >> noOfNodes >> noOfEdges;
-
+    STXXL_MSG("Reading graph from istream");
+	
     g.clearList();
-    for (int i=0; i<noOfEdges; i++) {
+    for (int i=0; i< 2 * noOfEdges; i++) {
 	unsigned int source,target,weight;
 	
 	in >> source >> target >> weight;
 	
 	edge = new Edge(source,target,weight);
 	g.addEdge(*edge);
-	g.addEdge(*edge);
-	g.swapEdge();
+	//g.addEdge(*edge);
+	//g.swapEdge();
     }
-    
+
+    STXXL_MSG(" Edge list: "<<g.getEdgeListSize());     
     stxxl::sort(g.getFirstEdge(),g.getEdgeListEnd(),myCmpEdgeWt(),INTERNAL_MEMORY_FOR_SORTING);
     Graph::edgeItr NewEnd = std::unique(g.getFirstEdge(),g.getEdgeListEnd());
     g.resizeList(NewEnd,g.getFirstEdge());
-	
+    g.generateVertexList();
+    g.setNoEdges(g.getEdgeListSize()/2);
     STXXL_MSG(" Edge list: "<<g.getEdgeListSize());    
 }
 
