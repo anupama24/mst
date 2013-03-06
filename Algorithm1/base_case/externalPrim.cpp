@@ -9,8 +9,8 @@ void ExternalPrim::buildMST(Graph &g,MST &mst)
 	
 	//const unsigned mem_for_pools = 128 * 1024 * 1024 ;
 	
-	Graph::edgeItr itr;
-	Graph::vertexItr v_itr;
+	Graph::const_edgeItr itr;
+	Graph::const_vertexItr v_itr;
 	Edge e_temp;
 	Graph::vertexType result;
 	//int i = 1;

@@ -13,12 +13,14 @@ public:
 	typedef stxxl::VECTOR_GENERATOR<Edge,PAGE_SIZE,NO_OF_PAGES,BLOCK_SIZE,stxxl::striping,PAGER>::result edgeType;
 	//Edge Vector Iterator	
 	typedef typename edgeType::iterator edgeItr;
+	typedef typename edgeType::const_iterator const_edgeItr;
 	//Vertex type: Pair of Vertex and iterator to edge vector	
 	typedef std::pair<Vertex,edgeItr> vertexType;
 	//Vector of vertices
 	typedef stxxl::VECTOR_GENERATOR<vertexType,VER_PAGE_SIZE,VER_NO_OF_PAGES,VER_BLOCK_SIZE>::result vertexVector;
 	//Vertex Vector Iterator
 	typedef typename vertexVector::iterator vertexItr;
+	typedef typename vertexVector::const_iterator const_vertexItr;
 
 private:	
 	vertexVector vertexList;
@@ -64,9 +66,25 @@ public:
 	    return (rand() % maxEdgeWeight +1);
 	}
 
+	inline bool checkEdgeListEnd(const_edgeItr itr)
+	{
+		if(itr==edgeList.end())
+			return true;
+		else
+			return false;
+	}
+
 	inline bool checkEdgeListEnd(edgeItr itr)
 	{
 		if(itr==edgeList.end())
+			return true;
+		else
+			return false;
+	}
+
+	inline bool checkVertexListEnd(const_vertexItr itr)
+	{
+		if(itr==vertexList.end())
 			return true;
 		else
 			return false;
@@ -79,6 +97,7 @@ public:
 		else
 			return false;
 	}
+
 	inline void clearList()
 	{
 		edgeList.clear();

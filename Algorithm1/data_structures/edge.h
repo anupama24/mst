@@ -25,11 +25,11 @@ public:
 	void setDst(unsigned int dst);
 	unsigned int getEdgeWt() const;
 	void setEdgeWt(unsigned int wt);
-	unsigned int getOrigSrc()
+	unsigned int getOrigSrc() const
 	{
 		return origSrc;
 	}
-	unsigned int getOrigDst()
+	unsigned int getOrigDst() const
 	{
 		return origDst;
 	}

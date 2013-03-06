@@ -16,6 +16,8 @@ void reduceGraph(Graph &g,Graph &gnew,int blockValue)
 
 	gnew.clearList();	
 	//STXXL_MSG("Reduce Graph");
+
+	stxxl::stats_data stats_begin(*stxxl::stats::get_instance());
 	for(vItr = g.getFirstVertex(); !(g.checkVertexListEnd(vItr)); vItr++)
 	{
 		for(eItr= vItr->second,i=0; (!g.checkEdgeListEnd(eItr)) && eItr->getSrc()== (vItr->first).getVertexId() && i< blockValue ; i++,eItr++)
@@ -53,9 +55,11 @@ void reduceGraph(Graph &g,Graph &gnew,int blockValue)
 	//STXXL_MSG("Reduce Graph");
 	gnew.setNoEdges(gnew.getEdgeListSize()/2);
 	gnew.setNoVertices(gnew.getVertexListSize());
-	//gnew.print_Graph();
-
+	//gnew.printGraph();
 	STXXL_MSG("Graph reduced");
+	std::cout << stxxl::stats_data(*stxxl::stats::get_instance()) - stats_begin;
+	
+	
 
 }
 		
@@ -64,6 +68,8 @@ void reduceGraph(Graph &g,Graph &gnew,int blockValue)
 */		
 void maintainList(VertexContract::represVector &L,VertexContract::represVector &C)
 {
+
+	stxxl::stats_data stats_begin(*stxxl::stats::get_instance());
 	if(L.empty())
 	{
 		L = C;
@@ -94,12 +100,14 @@ void maintainList(VertexContract::represVector &L,VertexContract::represVector &
 	}
 
 	STXXL_MSG("List updated");
+
+	std::cout << stxxl::stats_data(*stxxl::stats::get_instance()) - stats_begin;
 }
 
 /* Remove duplicate edges */
 void cleanEdges(Graph &g)
 {
-
+	stxxl::stats_data stats_begin(*stxxl::stats::get_instance());
 	
 	typedef typename Graph::edgeItr edgeItr;
 	typedef typename Graph::vertexItr vertexItr;
@@ -121,9 +129,19 @@ void cleanEdges(Graph &g)
 	}
 
 	stxxl::sort(g.getFirstEdge(),g.getEdgeListEnd(),myCmpSrc(),INTERNAL_MEMORY_FOR_SORTING);
-	
-	edgeItr NewEnd = std::unique(g.getFirstEdge(),g.getEdgeListEnd());
-	g.resizeList((NewEnd -1),g.getFirstEdge());
+	edgeItr NewEnd;
+
+	for(eItr=g.getFirstEdge(); !(g.checkEdgeListEnd(eItr)); eItr++)
+	{
+		if(eItr->getSrc() == std::numeric_limits<unsigned int>::max() && eItr->getDst() == std::numeric_limits<unsigned int>::max() && eItr->getEdgeWt() == std::numeric_limits<unsigned int>::max())
+		{
+			NewEnd = eItr;
+			break;
+		}
+	}
+		
+	//edgeItr NewEnd = std::unique(g.getFirstEdge(),g.getEdgeListEnd());
+	g.resizeList(NewEnd,g.getFirstEdge());
 	
 	//g.print_Graph();
 	stxxl::sort(g.getFirstEdge(),g.getEdgeListEnd(),myCmpEdgeWt(),INTERNAL_MEMORY_FOR_SORTING);
@@ -132,15 +150,16 @@ void cleanEdges(Graph &g)
 	for(vItr = g.getFirstVertex(); !(g.checkVertexListEnd(vItr)); vItr++)
 	{
 		for(; !(g.checkEdgeListEnd(eItr)) && eItr->getSrc()!=(vItr->first).getVertexId(); eItr++);
-			vItr->second = eItr;
+		vItr->second = eItr;
 		
 	}
 
 	g.setNoEdges(g.getEdgeListSize()/2);
 	g.setNoVertices(g.getVertexListSize());
 
-	STXXL_MSG("Edges clean");
-	//g.print_Graph();
+	STXXL_MSG("Edges clean: "<<" V: "<<g.getNoVertices()<<" E: "<<g.getNoEdges());
+	std::cout << stxxl::stats_data(*stxxl::stats::get_instance()) - stats_begin;
+	//g.printGraph();
 	
 	
 
@@ -148,6 +167,9 @@ void cleanEdges(Graph &g)
 	
 void minBlockingValue(Graph &g,VertexContract::represVector &list)
 {
+
+
+	stxxl::stats_data stats_begin(*stxxl::stats::get_instance());
 	stxxl::sort(list.begin(),list.end(),myCmpSec(), INTERNAL_MEMORY_FOR_SORTING);
 	stxxl::sort(g.getFirstVertex(),g.getVertexListEnd(),Graph::myCmpVer(g), INTERNAL_MEMORY_FOR_SORTING);
 	VertexContract::represVerItr it1,it2;
@@ -224,17 +246,22 @@ void minBlockingValue(Graph &g,VertexContract::represVector &list)
 	g.setNoVertices(g.getVertexListSize());
 
 	STXXL_MSG("Size of vertex main: "<<g.getVertexListSize());
-	for(vItr=g.getFirstVertex();!(g.checkVertexListEnd(vItr));vItr++)
+	std::cout << stxxl::stats_data(*stxxl::stats::get_instance()) - stats_begin;
+
+	/*for(vItr=g.getFirstVertex();!(g.checkVertexListEnd(vItr));vItr++)
 	{
 		STXXL_MSG(" V: "<<(vItr->first).getVertexId()<<" & "<<(vItr->first).getBlockingValue());
 			
-	}
+	}*/
 	
 
 }
 
 void replaceEdge(Graph &g,VertexContract::represVector &result)
 {
+
+
+	
 	VertexContract::represVerItr it;
 	
 	typedef typename Graph::edgeItr edgeItr;
@@ -294,6 +321,8 @@ void replaceEdge(Graph &g,VertexContract::represVector &result)
 	cleanEdges(g);	
 	STXXL_MSG("Edge replaced");
 	
+	
+	
 }
 	
 
@@ -306,8 +335,10 @@ void superphaseAlgo(Graph &g,int count,MST &mst,unsigned int limit)
 	int logNi,blockValue;
 	
 	float Ni = 2,prevNi,rtNi,lgNi;
-	//float B = (float) BLOCK_SIZE/(float)(sizeof(Edge) + sizeof(Vertex));
+	//float B = (float) BLOCK_SIZE/(float)(sizeof(Edge));
 
+	stxxl::stats_data stats_begin(*stxxl::stats::get_instance());
+	
 	DirectedGraph dag(g.getNoVertices(),g.getNoEdges());
 	dag.createGraph(g,mst);
 	dag.detectCycle(mst);
@@ -315,8 +346,12 @@ void superphaseAlgo(Graph &g,int count,MST &mst,unsigned int limit)
 	VertexContract vc(dag.getNoEdges());
 	vc.contractVertices(dag,result);
 	replaceEdge(g,result);
+
+	
+	
 	//g.print_Graph();
 	//list = vc.result;
+	
 
 	STXXL_MSG("Vertices "<<g.getNoVertices()<<" Edge: "<<g.getNoEdges()<<" count: "<<count);
 
@@ -344,17 +379,20 @@ void superphaseAlgo(Graph &g,int count,MST &mst,unsigned int limit)
 			result.clear();
 
 			STXXL_MSG("GNEW: Vertices "<<gnew.getNoVertices()<<" Edge: "<<gnew.getNoEdges());
-			if(gnew.getNoEdges() == 0)
+			if(gnew.getNoEdges() == 0 || gnew.getNoVertices() <= limit)
 				break;
 		}
 		
 		replaceEdge(g,list);
 		prevNi= Ni;
 		Ni= prevNi * sqrt(prevNi);
-		if(g.getNoVertices() < limit || g.getNoEdges() == 0)
+		if(g.getNoVertices() <= limit || g.getNoEdges() == 0)
+		{	
 			return;
+		}
 		
 	}
+	
 
 }
 

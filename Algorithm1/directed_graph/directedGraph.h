@@ -9,6 +9,7 @@ class DirectedGraph
 public:
 	typedef stxxl::VECTOR_GENERATOR<DirectedEdge, PAGE_SIZE,NO_OF_PAGES,BLOCK_SIZE,stxxl::striping,PAGER>::result dirEdgeType;
 	typedef typename dirEdgeType::iterator dirEdgeItr;
+	typedef typename dirEdgeType::const_iterator const_dirEdgeItr;
 	//typedef std::pair<Vertex,dirEdgeItr> vertexType;
 	//typedef stxxl::VECTOR_GENERATOR<vertexType,VER_PAGE_SIZE,VER_NO_OF_PAGES,VER_BLOCK_SIZE>::result dirVertexVector;
 	//typedef typename dirVertexVector::iterator dirVertexItr;
@@ -18,16 +19,14 @@ private:
 	//dirVertexVector dirVertexList;
 	dirEdgeType roots;
 	dirEdgeType dirEdgeList;
-	unsigned int noVertices;
 	unsigned int noEdges;
 	
 public:
 	DirectedGraph(){}
 
-	DirectedGraph(unsigned int num_v,unsigned int num_e):dirEdgeList(2*num_v),noVertices(num_v),noEdges(num_e)
+	DirectedGraph(unsigned int num_v,unsigned int num_e):dirEdgeList(2*num_v),noEdges(num_e)
 	{
 		STXXL_MSG("Creating a directed graph, addr=" << this);
-		STXXL_MSG("Vertices: " << num_v);
 		STXXL_MSG("Edges: " << num_e);
 
 		
@@ -36,7 +35,7 @@ public:
 					
 	}
 
-	inline bool checkRootsEnd(dirEdgeItr itr)
+	inline bool checkRootsEnd(const_dirEdgeItr itr)
 	{
 		if(itr==roots.end())
 			return true;
@@ -52,9 +51,16 @@ public:
 			return false;
 	}
 
-	unsigned int getNoVertices();
+	inline bool checkEdgeListEnd(const_dirEdgeItr itr)
+	{
+		if(itr==dirEdgeList.end())
+			return true;
+		else
+			return false;
+	}
+
+	
 	unsigned int getNoEdges();
-	void setNoVertices(unsigned int numV);
 	void setNoEdges(unsigned int numE);
 	void createGraph(Graph &g,MST &mst);
 	void detectCycle(MST &mst);
@@ -65,6 +71,11 @@ public:
 	dirEdgeItr getEdgeListEnd();
 	dirEdgeItr getRootEnd();
 	bool isRoot(unsigned int src,unsigned int dst,unsigned int wt);
+	void clearList()
+	{
+		dirEdgeList.clear();
+		roots.clear();
+	}
 	
 };
 

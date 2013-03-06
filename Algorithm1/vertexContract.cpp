@@ -183,11 +183,11 @@ void VertexContract::createList(DirectedGraph &dag)
 			
 	
 	STXXL_MSG("List created "<<list.size());
-	for(e_itr=list.begin();e_itr!=list.end();e_itr++)
+	/*for(e_itr=list.begin();e_itr!=list.end();e_itr++)
 	{
 		STXXL_MSG(" (" <<(e_itr->getSrc())<<", " <<(e_itr->getDst())<<", "<<(e_itr->getEdgeWt())<<") ");
 		
-	}
+	}*/
 	
 }
 void VertexContract::contractVertices(DirectedGraph &dag,represVector &res )
@@ -265,11 +265,11 @@ void VertexContract::contractVertices(DirectedGraph &dag,represVector &res )
 	STXXL_MSG("Vertices contracted");
 
 
-	for(represVerItr itr = resultVector.begin(); itr!=resultVector.end();itr++)
+	/*for(represVerItr itr = resultVector.begin(); itr!=resultVector.end();itr++)
 	{	
 		
 		STXXL_MSG(" "<<itr->first<<" --> " <<itr->second);
-	}
+	}*/
 
 
 	res = resultVector;

@@ -59,21 +59,21 @@ int main(int argc, char *argv[])
 
 
 	float M = (20 * 1024 * 1024)/(float)(sizeof(Edge));
-	float N = param.noOfNodes()+param.noOfEdges();
+	float N = param.noOfNodes()+2*param.noOfEdges();
 	STXXL_MSG("N: "<<N<<" M: "<<M<<" B: "<<B<<" Sizeof Edge: "<<sizeof(Edge));
 
 	stxxl::stats_data stats_begin(*stxxl::stats::get_instance());
 
     	stxxl::timer Timer;
 
-	//if(N > (M/4))
+	if(N > M)
 	{
 		
 		Timer.start();
 		superphaseAlgo(inputGraph,count,mst,upperLimit);
 		STXXL_MSG("Elapsed time: " << (Timer.mseconds() / 1000.) <<
               " seconds : " << (double(inputGraph.getNoEdges()) / (Timer.mseconds() / 1000.)) << " edges per sec");
-	        std::cout << stxxl::stats_data(*stxxl::stats::get_instance()) - stats_begin;
+	        //std::cout << stxxl::stats_data(*stxxl::stats::get_instance()) - stats_begin; 
 
 	}
 
@@ -81,7 +81,8 @@ int main(int argc, char *argv[])
 
 	if(inputGraph.getNoEdges() != 0)
 	{
-		stats_begin = *stxxl::stats::get_instance();
+		//stats_begin = *stxxl::stats::get_instance();
+		stxxl::stats_data stats_begin(*stxxl::stats::get_instance());
     		Timer.reset();
 		Timer.start();
 		ExternalPrim prim;
@@ -91,10 +92,10 @@ int main(int argc, char *argv[])
 		STXXL_MSG("MST build elapsed time: " << (Timer.mseconds() / 1000.) <<" seconds : " << (double(inputGraph.getNoEdges()) / (Timer.mseconds() / 1000.)) << " edges per sec");
 
 		std::cout << stxxl::stats_data(*stxxl::stats::get_instance()) - stats_begin;
-		mst.printMST();	
+		
 	}
 	
-
+	mst.printMST();	
 	
 	return 0;
 }

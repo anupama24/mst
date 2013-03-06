@@ -1,15 +1,6 @@
 #include "directedGraph.h"
 
 
-unsigned int DirectedGraph::getNoVertices()
-{
-	return noVertices;
-}
-void DirectedGraph::setNoVertices(unsigned int numV)
-{
-	noVertices = numV;
-}
-
 unsigned int DirectedGraph::getNoEdges()
 {
 	return noEdges;
@@ -24,14 +15,16 @@ void DirectedGraph::createGraph(Graph &g,MST &mst)
 {
 
 	
-	Graph::edgeItr minItr;
-	Graph::vertexItr vItr;
+	Graph::const_edgeItr minItr;
+	Graph::const_vertexItr vItr;
 	
 	DirectedEdge *e;
 		
 	//g.printGraph();
 	
 	dirEdgeList.clear();
+
+
 
 	STXXL_MSG("Check");
 	
@@ -42,10 +35,12 @@ void DirectedGraph::createGraph(Graph &g,MST &mst)
 		{
 			//STXXL_MSG("Check inside if");
 			minItr=vItr->second;
-			mst.addEdge(*minItr);
-			e = new DirectedEdge(minItr->getDst(),minItr->getSrc(),minItr->getEdgeWt());
+			//mst.addEdge(*minItr);
+			e = new DirectedEdge(minItr->getDst(),minItr->getSrc(),minItr->getOrigDst(),minItr->getOrigSrc(),minItr->getEdgeWt());
 			dirEdgeList.push_back(*e);
 		}
+		
+	
 	}
 
 	noEdges=dirEdgeList.size();	
@@ -59,10 +54,11 @@ void DirectedGraph::createGraph(Graph &g,MST &mst)
 void DirectedGraph::detectCycle(MST &mst)
 {
 		//dirVertexItr vItr;
-		dirEdgeItr eItr,itr,NewEnd;
+		dirEdgeItr eItr;
+		const_dirEdgeItr itr,NewEnd;
 		dirEdgeType cycleEdges;
-		Graph::edgeItr mstItr;			
 		dirEdgeType rev = dirEdgeList;
+		Edge *e;
 
 		stxxl::sort(dirEdgeList.begin(),dirEdgeList.end(),dirCmpWt(),INTERNAL_MEMORY_FOR_SORTING);
 		stxxl::sort(rev.begin(),rev.end(),dirCmpWtRev(),INTERNAL_MEMORY_FOR_SORTING);
@@ -94,32 +90,45 @@ void DirectedGraph::detectCycle(MST &mst)
 		//STXXL_MSG("Detect");	
 		
 		stxxl::sort(dirEdgeList.begin(),dirEdgeList.end(),dirCmpEdge(),INTERNAL_MEMORY_FOR_SORTING);	
-		stxxl::sort(mst.mstBegin(),mst.mstEnd(),myCmpEdgeWt(),INTERNAL_MEMORY_FOR_SORTING);	
-		
+				
 		if(!cycleEdges.empty())
 		{
 			stxxl::sort(cycleEdges.begin(),cycleEdges.end(),dirCmpEdge(),INTERNAL_MEMORY_FOR_SORTING);
 			itr = cycleEdges.begin();
-			mstItr = mst.mstBegin();
-
-			for(eItr=dirEdgeList.begin();eItr!=dirEdgeList.end() && itr!= cycleEdges.end();eItr++,mstItr++)
+			
+			for(eItr=dirEdgeList.begin();eItr!=dirEdgeList.end() && itr!= cycleEdges.end();eItr++)
 			{
 				if(*eItr==*itr)
 				{
 					eItr->setSrc(std::numeric_limits<unsigned int>::max());
 					eItr->setDst(std::numeric_limits<unsigned int>::max());
 					eItr->setEdgeWt(std::numeric_limits<unsigned int>::max());
-					mst.removeEdge(mstItr);
 					itr++;
 					
 				}
 				
 			}
 			stxxl::sort(dirEdgeList.begin(),dirEdgeList.end(),dirCmpEdge(),INTERNAL_MEMORY_FOR_SORTING);	
-			NewEnd = std::unique(dirEdgeList.begin(),dirEdgeList.end());			
-			dirEdgeList.resize((NewEnd -1)- dirEdgeList.begin());
-			mst.clean();
+			for(eItr=dirEdgeList.begin();eItr!=dirEdgeList.end();eItr++)
+			{
+				if(eItr->getSrc() == std::numeric_limits<unsigned int>::max() && eItr->getDst() == std::numeric_limits<unsigned int>::max() && eItr->getEdgeWt() == std::numeric_limits<unsigned int>::max())
+				{
+					NewEnd = eItr;
+					break;
+				}
+				else
+				{
+					e = new Edge(eItr->getOrigDst(), eItr->getOrigSrc(), eItr->getEdgeWt());
+					mst.addEdge(*e);
+				}
+			}
+					
+			//NewEnd = std::unique(dirEdgeList.begin(),dirEdgeList.end());			
+			dirEdgeList.resize(NewEnd - dirEdgeList.begin());
+			
 		}
+
+		
 	
 		//STXXL_MSG("Detect");
 		/*vertexType result;
@@ -146,11 +155,13 @@ void DirectedGraph::detectCycle(MST &mst)
 		
 		noEdges=dirEdgeList.size();
 		stxxl::sort(roots.begin(),roots.end(),dirCmpEdge(),INTERNAL_MEMORY_FOR_SORTING);
-		//printGraph();
-		//noVertices = dirVertexList.size();
-		//STXXL_MSG("No of vertices: "<<noVertices);
+
+		if(roots.size() == 0)
+			printGraph();
+		
 		STXXL_MSG("Number of edges: "<<noEdges<<std::endl<<" No of components: "<<roots.size());
 		STXXL_MSG("Cycle detected");
+		STXXL_MSG("MST size: "<<mst.getMSTSize());
 		
 		
 }
@@ -196,7 +207,6 @@ void DirectedGraph::printGraph()
 	dirEdgeItr itr;
 	
 	STXXL_MSG("**Directed Graph -  Edge Listing **"<<std::endl);
-	STXXL_MSG("No of vertices: "<<noVertices);
 	STXXL_MSG("Number of edges: "<<noEdges<<std::endl);
 	
 	for(itr=dirEdgeList.begin();itr!=dirEdgeList.end();itr++)
