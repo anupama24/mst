@@ -6,7 +6,7 @@
 class MST
 {
 	typedef stxxl::VECTOR_GENERATOR<Edge,PAGE_SIZE,NO_OF_PAGES,BLOCK_SIZE,stxxl::striping,PAGER>::result mstType;
-	typedef Graph::edgeItr mstItr;
+	typedef Graph::const_edgeItr mstItr;
 	mstType mstTree;
 	unsigned int noVertices;
 	unsigned int noEdges;
@@ -30,7 +30,6 @@ public:
 	void setNoEdges(unsigned int numE);
 	void printMST();
 	void addEdge(Edge &temp);
-	void removeEdge(mstItr itr);
 	inline mstItr mstBegin()
 	{
 		return mstTree.begin();
@@ -39,10 +38,7 @@ public:
 	{
 		return mstTree.end();
 	}
-	void clean();
-	
 
-	
 
 };
 
@@ -74,19 +70,6 @@ void MST::addEdge(Edge &temp)
 	mstTree.push_back(temp);
 }
 
-void MST::removeEdge(mstItr itr)
-{
-	itr->setSrc(std::numeric_limits<unsigned int>::max());
-	itr->setDst(std::numeric_limits<unsigned int>::max());
-	itr->setEdgeWt(std::numeric_limits<unsigned int>::max());
-}
-
-void MST::clean()
-{
-	stxxl::sort(mstTree.begin(),mstTree.end(),myCmpEdgeWt(),INTERNAL_MEMORY_FOR_SORTING);	
-	mstItr NewEnd = std::unique(mstTree.begin(),mstTree.end());			
-	mstTree.resize(NewEnd - mstTree.begin());
-}
 
 void MST::printMST()
 {
@@ -98,7 +81,7 @@ void MST::printMST()
 	
 	for(itr=mstTree.begin();itr!=mstTree.end();itr++)
 	{
-		STXXL_MSG(" (" <<(itr->getOrigSrc())<<", " <<(itr->getOrigDst())<<", "<<(itr->getEdgeWt())<<") ");
+		STXXL_MSG(" (" <<(itr->getSrc())<<", " <<(itr->getDst())<<", "<<(itr->getEdgeWt())<<") ");
 		
 	}
 

@@ -13,8 +13,11 @@ class Parameters
     Parameters( int argc, char *argv[] )
     {
 	_inputSpecified = false;
+	_randomGraph = false;
 	_noOfNodes = std::numeric_limits<unsigned int>::max();
 	_noOfEdges = std::numeric_limits<unsigned int>::max();
+	_importInputFilename = "";
+	_outputFilename = "";
 	
 	if (argc < 2) {
 	    std::cerr << "Too few arguments !" << std::endl << std::endl;

@@ -24,7 +24,7 @@ private:
 public:
 	DirectedGraph(){}
 
-	DirectedGraph(unsigned int num_v,unsigned int num_e):dirEdgeList(2*num_v),noEdges(num_e)
+	DirectedGraph(unsigned int num_v,unsigned int num_e):dirEdgeList(num_v+1),noEdges(num_e)
 	{
 		STXXL_MSG("Creating a directed graph, addr=" << this);
 		STXXL_MSG("Edges: " << num_e);
@@ -76,6 +76,7 @@ public:
 		dirEdgeList.clear();
 		roots.clear();
 	}
+	
 	
 };
 

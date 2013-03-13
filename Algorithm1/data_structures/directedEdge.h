@@ -40,6 +40,17 @@ public:
 		return origDst;
 	}
 
+	void swap()
+	{
+		int temp = src;
+		src = dst;
+		dst = temp;
+		temp = origSrc;
+		origSrc = origDst;
+		origDst =temp;
+	}
+	
+
 	
 };
 
@@ -102,7 +113,7 @@ struct dirCmpEdge
 	DirectedEdge max_value() const { 
 		return DirectedEdge(std::numeric_limits<unsigned int>::max(),0,0); }
 	bool operator () (const DirectedEdge & a, const DirectedEdge & b) const {
-		return a.getSrc() < b.getSrc() || (a.getSrc() == b.getSrc() && a.getEdgeWt() < b.getEdgeWt());
+		return a.getSrc() < b.getSrc() || (a.getSrc() == b.getSrc() && a.getEdgeWt() < b.getEdgeWt()) || (a.getSrc() == b.getSrc() && a.getEdgeWt() == b.getEdgeWt() && a.getDst()< b.getDst());
 	}
 };
 
@@ -113,7 +124,7 @@ struct dirCmpSrc
 	DirectedEdge max_value() const { 
 		return DirectedEdge(std::numeric_limits<unsigned int>::max(),0,0); }
 	bool operator () (const DirectedEdge & a, const DirectedEdge & b) const {
-		return a.getSrc() < b.getSrc() || (a.getSrc() == b.getSrc() && a.getDst() < b.getDst());
+		return a.getSrc() < b.getSrc() || (a.getSrc() == b.getSrc() && a.getDst() < b.getDst()) || (a.getSrc() == b.getSrc() && a.getDst() == b.getDst() && a.getEdgeWt() < b.getEdgeWt());
 	}
 };
 
@@ -124,7 +135,7 @@ struct dirCmpDst
 	DirectedEdge max_value() const { 
 		return DirectedEdge(std::numeric_limits<unsigned int>::max(),0,0); }
 	bool operator () (const DirectedEdge & a, const DirectedEdge & b) const {
-		return a.getDst() < b.getDst() || (a.getDst() == b.getDst() && a.getSrc() < b.getSrc());
+		return a.getDst() < b.getDst() || (a.getDst() == b.getDst() && a.getSrc() < b.getSrc()) || (a.getDst() == b.getDst() && a.getSrc() == b.getSrc() && a.getEdgeWt() < b.getEdgeWt());
 	}
 };
 

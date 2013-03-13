@@ -201,6 +201,9 @@ void VertexContract::contractVertices(DirectedGraph &dag,represVector &res )
         pqType pqFwdProcess(pool);
 	pqVertex *pqElem = NULL;
 
+
+
+	stxxl::stats_data stats_begin(*stxxl::stats::get_instance());
 	createList(dag);
 	edgeItr rootItr,e_itr,temp;
 	represVertex newRepres;
@@ -263,7 +266,7 @@ void VertexContract::contractVertices(DirectedGraph &dag,represVector &res )
 	list.clear();
 	//pqFwdProcess.~priority_queue();
 	STXXL_MSG("Vertices contracted");
-
+	std::cout << stxxl::stats_data(*stxxl::stats::get_instance()) - stats_begin;
 
 	/*for(represVerItr itr = resultVector.begin(); itr!=resultVector.end();itr++)
 	{	

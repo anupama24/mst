@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
 
 	}
 
-	
+	STXXL_MSG("MST size: "<<mst.getMSTSize()<<" G V: "<<inputGraph.getNoVertices());	
 
 	if(inputGraph.getNoEdges() != 0)
 	{

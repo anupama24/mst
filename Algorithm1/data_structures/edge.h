@@ -102,7 +102,7 @@ struct myCmpDst
 	Edge max_value() const { 
 		return Edge(0,std::numeric_limits<unsigned int>::max(),0); };
 	bool operator () (const Edge & a, const Edge & b) const {
-		return a.getDst() < b.getDst() || (a.getDst() == b.getDst() && a.getSrc() < b.getSrc());
+		return a.getDst() < b.getDst() || (a.getDst() == b.getDst() && a.getSrc() < b.getSrc()) || (a.getDst() == b.getDst() && a.getSrc() == b.getSrc() && a.getEdgeWt() < b.getEdgeWt());
 	}
 };
 
@@ -113,7 +113,7 @@ struct myCmpEdgeWt
 	Edge max_value() const { 
 		return Edge(std::numeric_limits<unsigned int>::max(),0,0); };
 	bool operator () (const Edge & a, const Edge & b) const {
-		return a.getSrc() < b.getSrc() || (a.getSrc() == b.getSrc() && a.getEdgeWt() < b.getEdgeWt());
+		return a.getSrc() < b.getSrc() || (a.getSrc() == b.getSrc() && a.getEdgeWt() < b.getEdgeWt()) || (a.getSrc() == b.getSrc() && a.getEdgeWt() == b.getEdgeWt() && a.getDst() < b.getDst());
 	}
 };
 
