@@ -27,7 +27,7 @@ void DirectedGraph::createGraph(Graph &g,MST &mst)
 
 
 	STXXL_MSG("Check");
-	stxxl::stats_data stats_begin(*stxxl::stats::get_instance());
+	
 	
 	for(vItr = g.getFirstVertex(); !(g.checkVertexListEnd(vItr)); vItr++)
 	{
@@ -45,7 +45,7 @@ void DirectedGraph::createGraph(Graph &g,MST &mst)
 
 	stxxl::sort(dirEdgeList.begin(),dirEdgeList.end(),dirCmpWt(),INTERNAL_MEMORY_FOR_SORTING);
 	STXXL_MSG("Directed graph created");
-	std::cout << stxxl::stats_data(*stxxl::stats::get_instance()) - stats_begin;
+	
 	//printGraph();
 	
 }
@@ -59,8 +59,7 @@ void DirectedGraph::detectCycle(MST &mst)
 		dirEdgeType rev = dirEdgeList;
 		Edge *e;
 
-		stxxl::stats_data stats_begin(*stxxl::stats::get_instance());
-
+		
 		
 		stxxl::sort(rev.begin(),rev.end(),dirCmpWtRev(),INTERNAL_MEMORY_FOR_SORTING);
 				
@@ -130,8 +129,7 @@ void DirectedGraph::detectCycle(MST &mst)
 		STXXL_MSG("Number of edges: "<<noEdges<<std::endl<<" No of components: "<<roots.size());
 		STXXL_MSG("Cycle detected");
 		STXXL_MSG("MST size: "<<mst.getMSTSize());
-		std::cout << stxxl::stats_data(*stxxl::stats::get_instance()) - stats_begin;
-		
+	
 }
 
 void DirectedGraph::copyEdgeList(dirEdgeType &list)

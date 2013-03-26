@@ -133,6 +133,10 @@ public:
 	vertexItr getVertexListEnd();
 	void resizeList(edgeItr end,edgeItr begin);
 	void resizeVertexList(vertexItr end,vertexItr begin);
+	void flushVertexList()
+	{
+		vertexList.flush();
+	}
 	
 
 

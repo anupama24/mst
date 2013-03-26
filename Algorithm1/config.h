@@ -19,9 +19,9 @@
 #define PAGER stxxl::lru
 
 //default template parameters of Vertex Vector
-#define VER_BLOCK_SIZE 1024 *1024
+#define VER_BLOCK_SIZE 2*1024 *1024
 #define VER_NO_OF_PAGES 1
-#define VER_PAGE_SIZE 4
+#define VER_PAGE_SIZE 10
 
 // ** PQUEUE IMPLEMENTATION **
 #define PQUEUE_INTERNAL_MEMORY 10*1024*1024
