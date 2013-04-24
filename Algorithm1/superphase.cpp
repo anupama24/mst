@@ -147,20 +147,28 @@ void cleanEdges(Graph &g)
 	}
 
 	stxxl::sort(g.getFirstEdge(),g.getEdgeListEnd(),myCmpSrc(),INTERNAL_MEMORY_FOR_SORTING);
-	edgeItr NewEnd;
+	edgeItr NewEnd = g.getFirstEdge() ;
 
-	for(eItr=g.getFirstEdge(); !(g.checkEdgeListEnd(eItr)); eItr++)
+	for(eItr=g.getFirstEdge()+1; !(g.checkEdgeListEnd(eItr)); eItr++)
 	{
 		if(eItr->getSrc() == std::numeric_limits<unsigned int>::max() && eItr->getDst() == std::numeric_limits<unsigned int>::max() && eItr->getEdgeWt() == std::numeric_limits<unsigned int>::max())
 		{
 			NewEnd = eItr;
 			break;
 		}
+		if(!(NewEnd == eItr))
+		{
+			//STXXL_MSG(NewEnd->getSrc()<<" "<<NewEnd->getDst()<<" "<<NewEnd->getEdgeWt());
+			NewEnd++;
+			*NewEnd = *eItr;
+		}
 	}
 
 	//edgeItr NewEnd = std::unique(g.getFirstEdge(),g.getEdgeListEnd());
 	g.resizeList(NewEnd,g.getFirstEdge());
 
+	STXXL_MSG("Edges clean: "<<g.getEdgeListSize());
+	
 	//g.print_Graph();
 	stxxl::sort(g.getFirstEdge(),g.getEdgeListEnd(),myCmpEdgeWt(),INTERNAL_MEMORY_FOR_SORTING);
 

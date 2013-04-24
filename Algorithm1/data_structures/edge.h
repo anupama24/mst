@@ -90,7 +90,7 @@ struct myCmpSrc
 	Edge max_value() const { 
 		return Edge(std::numeric_limits<unsigned int>::max(),0,0); };
 	bool operator () (const Edge &a, const Edge &b) const {
-		return a.getSrc() < b.getSrc() || (a.getSrc() == b.getSrc() && a.getDst() < b.getDst()) || (a.getSrc() == b.getSrc() && a.getDst() == b.getDst() && a.getEdgeWt() < b.getEdgeWt());
+		return (a.getSrc() < b.getSrc() || (a.getSrc() == b.getSrc() && a.getDst() < b.getDst()) || (a.getSrc() == b.getSrc() && a.getDst() == b.getDst() && a.getEdgeWt() < b.getEdgeWt()));
 	}
 };
 
@@ -109,11 +109,11 @@ struct myCmpDst
 struct myCmpEdgeWt
 {
   	Edge min_value() const { 
-		return Edge(std::numeric_limits<unsigned int>::min(),0,0); };
+		return Edge(std::numeric_limits<unsigned int>::min(),std::numeric_limits<unsigned int>::min(),std::numeric_limits<unsigned int>::min()); };
 	Edge max_value() const { 
-		return Edge(std::numeric_limits<unsigned int>::max(),0,0); };
+		return Edge(std::numeric_limits<unsigned int>::max(),std::numeric_limits<unsigned int>::max(),std::numeric_limits<unsigned int>::max()); };
 	bool operator () (const Edge & a, const Edge & b) const {
-		return a.getSrc() < b.getSrc() || (a.getSrc() == b.getSrc() && a.getEdgeWt() < b.getEdgeWt()) || (a.getSrc() == b.getSrc() && a.getEdgeWt() == b.getEdgeWt() && a.getDst() < b.getDst());
+		return (a.getSrc() < b.getSrc() || (a.getSrc() == b.getSrc() && a.getEdgeWt() < b.getEdgeWt()) || (a.getSrc() == b.getSrc() && a.getEdgeWt() == b.getEdgeWt() && a.getDst() < b.getDst()));
 	}
 };
 

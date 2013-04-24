@@ -62,7 +62,7 @@ public:
 
 	/** Returns a random edge weight. */
 	inline unsigned int randomEdgeWeight() {
-	    const int maxEdgeWeight = 1e3;
+	    const int maxEdgeWeight = 1e6;
 	    return (unsigned int)(rand() / (double)(RAND_MAX+1.0) * maxEdgeWeight);
 	}
 

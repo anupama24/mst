@@ -112,7 +112,7 @@ void Graph::generateEdges()
 	}
 
 	
-	stxxl::sort(edgeList.begin(),edgeList.end(),myCmpSrc(),INTERNAL_MEMORY_FOR_SORTING);
+	stxxl::sort(edgeList.begin(),edgeList.end(),myCmpEdgeSrc(),INTERNAL_MEMORY_FOR_SORTING);
 	edgeItr NewEnd = std::unique(edgeList.begin(),edgeList.end());
 	edgeList.resize(NewEnd - edgeList.begin());
 	stxxl::sort(edgeList.begin(),edgeList.end(),myCmpEdgeWt(),INTERNAL_MEMORY_FOR_SORTING);
