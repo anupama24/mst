@@ -63,7 +63,7 @@ public:
 	/** Returns a random edge weight. */
 	inline unsigned int randomEdgeWeight() {
 	    const int maxEdgeWeight = 1e3;
-	    return (unsigned int)(rand() / (double)(RAND_MAX+1.0) * maxEdgeWeight);
+	    return (unsigned int)(rand() / (double)(RAND_MAX+1.0) * maxEdgeWeight + 1);
 	}
 
 	inline bool checkEdgeListEnd(const_edgeItr itr)
@@ -119,7 +119,9 @@ public:
 	unsigned int getNoEdges();
 	void setNoVertices(unsigned int numV);
 	void setNoEdges(unsigned int numE);
-	void generateGraph();
+	void generateRandomGraph();
+	void generateCompleteGraph();
+
 	void generateEdges();
 	void generateVertexList();
 	void printGraph();

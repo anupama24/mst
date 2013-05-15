@@ -14,7 +14,7 @@
 
 //default template parameters of Edge & MST Vector
 #define BLOCK_SIZE 2 * 1024 *1024
-#define NO_OF_PAGES 1
+#define NO_OF_PAGES 2
 #define PAGE_SIZE 10
 #define PAGER stxxl::lru
 

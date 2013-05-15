@@ -153,10 +153,10 @@ void cleanEdges(Graph &g)
 	{
 		if(eItr->getSrc() == std::numeric_limits<unsigned int>::max() && eItr->getDst() == std::numeric_limits<unsigned int>::max() && eItr->getEdgeWt() == std::numeric_limits<unsigned int>::max())
 		{
-			NewEnd = eItr;
+			NewEnd++;
 			break;
 		}
-		if(!(NewEnd == eItr))
+		if(!(*NewEnd == *eItr))
 		{
 			//STXXL_MSG(NewEnd->getSrc()<<" "<<NewEnd->getDst()<<" "<<NewEnd->getEdgeWt());
 			NewEnd++;

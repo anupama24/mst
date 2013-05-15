@@ -126,7 +126,12 @@ void DirectedGraph::detectCycle(MST &mst)
 					
 		//printGraph();
 		
-		STXXL_MSG("Number of edges: "<<noEdges<<std::endl<<" No of components: "<<roots.size());
+		/*STXXL_MSG("Number of edges: "<<noEdges<<std::endl<<" No of components: "<<roots.size());
+		for(itr=roots.begin();itr!=roots.end();itr++)
+		{
+			STXXL_MSG(" (" <<(itr->getSrc())<<", " <<(itr->getDst())<<", "<<(itr->getEdgeWt())<<") ");
+		}*/
+
 		STXXL_MSG("Cycle detected");
 		STXXL_MSG("MST size: "<<mst.getMSTSize());
 	

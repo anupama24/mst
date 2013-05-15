@@ -14,6 +14,7 @@ class Parameters
     {
 	_inputSpecified = false;
 	_randomGraph = false;
+	_completeGraph = false;
 	_noOfNodes = std::numeric_limits<unsigned int>::max();
 	_noOfEdges = std::numeric_limits<unsigned int>::max();
 	_importInputFilename = "";
@@ -45,6 +46,21 @@ class Parameters
 		continue;
 	    }
 	    
+	     if ( ! strcmp(argv[index], "-c") ) {
+		if ( _inputSpecified ) {
+		    std::cerr << "Argument '-c' contradicts another argument !"<< std::endl << std::endl;
+		    usage(-1);
+		}
+		if ( argc - (++index) < 1 ) {
+		    std::cerr << "-c requires one additional argument !"<< std::endl << std::endl;
+		    usage(-1);
+		}
+		_noOfNodes = atof(argv[index++]);
+		_noOfEdges = _noOfNodes * (_noOfNodes - 1) / 2;
+		_inputSpecified = true;
+		_completeGraph = true;
+		continue;
+	    }
 	    
 	    if ( ! strcmp(argv[index], "-i") ) {
 		if ( _inputSpecified ) {
@@ -86,6 +102,7 @@ class Parameters
     }
 
     bool randomGraph() const {return _randomGraph;}
+    bool completeGraph() const {return _completeGraph;}
     unsigned int noOfNodes() const {return _noOfNodes;}
     unsigned int noOfEdges() const {return _noOfEdges;}
     
@@ -95,6 +112,7 @@ class Parameters
  private:
     bool _inputSpecified;
     bool _randomGraph;
+    bool _completeGraph;
     unsigned int _noOfNodes;
     unsigned int _noOfEdges;
 
@@ -102,12 +120,13 @@ class Parameters
     std::string _outputFilename;
    
     void usage(int exitCode) const {
-	std::cout << "usage: mst -h|(-r #nodes #edges)|"
+	std::cout << "usage: mst -h|(-r #nodes #edges)|(-c #nodes)"
 		  << "(-i filenameImportInput) "
 		  << std::endl <<"[-o filenameMST]"
 		  << std::endl << std::endl
 		  << "\t -h   display this help and exit" << std::endl
 		  << "\t -r   generate random graph with the given numbers of nodes and edges" << std::endl
+  		  << "\t -c   generate a complete graph with the given number of nodes" << std::endl
 		  << std::endl
 		  << "\t -i   specify file in order to import the input graph"
 		  << std::endl << std::endl

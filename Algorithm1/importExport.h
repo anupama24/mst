@@ -17,7 +17,7 @@
 void importEdgeVector(const std::string &filename,Graph &g)
 {
     int noOfNodes,noOfEdges;
-    Edge *edge;
+    
 
     std::ifstream in( filename.c_str() );
     in >> noOfNodes >> noOfEdges;
@@ -29,16 +29,33 @@ void importEdgeVector(const std::string &filename,Graph &g)
 	
 	in >> source >> target >> weight;
 	
-	edge = new Edge(source,target,weight);
-	g.addEdge(*edge);
+	Edge edge(source,target,weight);
+	g.addEdge(edge);
 	//g.addEdge(*edge);
 	//g.swapEdge();
     }
 
-    STXXL_MSG(" Edge list: "<<g.getEdgeListSize());     
-    stxxl::sort(g.getFirstEdge(),g.getEdgeListEnd(),myCmpEdgeWt(),INTERNAL_MEMORY_FOR_SORTING);
-    Graph::edgeItr NewEnd = std::unique(g.getFirstEdge(),g.getEdgeListEnd());
+    STXXL_MSG(" Edge list: "<<g.getEdgeListSize());
+     
+    stxxl::sort(g.getFirstEdge(),g.getEdgeListEnd(),myCmpSrc(),INTERNAL_MEMORY_FOR_SORTING);
+    Graph::edgeItr eItr,NewEnd;
+    NewEnd = g.getFirstEdge() ;
+
+	for(eItr=g.getFirstEdge()+1; !(g.checkEdgeListEnd(eItr)); eItr++)
+	{
+		if(!(*NewEnd == *eItr))
+		{
+			//STXXL_MSG(NewEnd->getSrc()<<" "<<NewEnd->getDst()<<" "<<NewEnd->getEdgeWt());
+			NewEnd++;
+			*NewEnd = *eItr;
+		}
+	}
+
+    NewEnd++;
+    //std::unique(g.getFirstEdge(),g.getEdgeListEnd());
     g.resizeList(NewEnd,g.getFirstEdge());
+    stxxl::sort(g.getFirstEdge(),g.getEdgeListEnd(),myCmpEdgeWt(),INTERNAL_MEMORY_FOR_SORTING);
+   
     g.generateVertexList();
     g.setNoEdges(g.getEdgeListSize()/2);
     STXXL_MSG(" Edge list: "<<g.getEdgeListSize());    

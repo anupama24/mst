@@ -248,6 +248,7 @@ void VertexContract::contractVertices(DirectedGraph &dag,represVector &res )
 		//STXXL_MSG(" (" <<(e_itr->getSrc())<<", " <<(e_itr->getDst())<<", "<<(e_itr->getEdgeWt())<<") ");
 	
 	}
+	//STXXL_MSG("Size: "<<resultVector.size()<<"PQ: "<<pqFwdProcess.size());
 
 	while(!pqFwdProcess.empty())
 	{
@@ -276,7 +277,7 @@ void VertexContract::contractVertices(DirectedGraph &dag,represVector &res )
 
 
 	res = resultVector;
-	
+	//exit(0);
 	
 	
 }

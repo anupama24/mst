@@ -26,10 +26,17 @@ int main(int argc, char *argv[])
 	if (param.randomGraph())
 	{
 		STXXL_MSG("Generating random graph");
-		inputGraph.generateGraph();
+		inputGraph.generateRandomGraph();
 		inputGraph.printGraph();
 
-	}	
+	}
+	else if (param.completeGraph())
+	{
+		STXXL_MSG("Generating complete graph");
+		inputGraph.generateCompleteGraph();
+		inputGraph.printGraph();
+	}
+			
 	else if (param.importInputFilename() != "") 
 	{
 		// import graph from file

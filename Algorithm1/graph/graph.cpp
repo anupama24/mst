@@ -60,12 +60,12 @@ Graph::vertexItr Graph::getVertexListEnd()
 	return vertexList.end();
 }
 
-void Graph::resizeList(Graph::edgeItr end,Graph::edgeItr begin)
+inline void Graph::resizeList(Graph::edgeItr end,Graph::edgeItr begin)
 {
 	edgeList.resize(end - begin);
 }
 
-void Graph::resizeVertexList(Graph::vertexItr end,Graph::vertexItr begin)
+inline void Graph::resizeVertexList(Graph::vertexItr end,Graph::vertexItr begin)
 {
 	vertexList.resize(end - begin);
 }
@@ -74,26 +74,27 @@ void Graph::resizeVertexList(Graph::vertexItr end,Graph::vertexItr begin)
 void Graph::generateEdges()
 {
 	unsigned int i;
-	Edge *tempEdge;
+	
 	edgeItr itr;
 	
 	edgeList.clear();
 	
+	Edge *e;
 	//std::generate(edgeList.begin(),edgeList.end(),random_edge(noVertices,1e3));
 	//srand ( time(NULL) );
 
 	for(i=0;i<noVertices;i++)
 	{	
 		do
-		{	tempEdge = new Edge(i+1,randomNodeID(),randomEdgeWeight());
-			while(tempEdge->getDst() == tempEdge->getSrc()) 
-				tempEdge->setDst(randomNodeID());
-			itr = stxxl::find(edgeList.begin(), edgeList.end(), *tempEdge, 4);
+		{	e = new Edge(i+1,randomNodeID(),randomEdgeWeight());
+			while(e->getDst() == e->getSrc()) 
+				e->setDst(randomNodeID());
+			itr = stxxl::find(edgeList.begin(), edgeList.end(), *e, 4);
 					
 		}
 		while(itr!=edgeList.end());
-		edgeList.push_back(*tempEdge);
-		edgeList.push_back(*tempEdge);
+		edgeList.push_back(*e);
+		edgeList.push_back(*e);
 		edgeList.back().swap();
 		
 	}
@@ -101,19 +102,33 @@ void Graph::generateEdges()
 		
 	for(i=0;i<(noEdges-noVertices);i++)
 	{
-		tempEdge = new Edge(randomNodeID(),randomNodeID(),randomEdgeWeight());
-		while(tempEdge->getDst() == tempEdge->getSrc()) 
-			tempEdge->setDst(randomNodeID());
+		Edge tempEdge(randomNodeID(),randomNodeID(),randomEdgeWeight());
+		while(tempEdge.getDst() == tempEdge.getSrc()) 
+			tempEdge.setDst(randomNodeID());
 		
-		edgeList.push_back(*tempEdge);
-		edgeList.push_back(*tempEdge);
+		edgeList.push_back(tempEdge);
+		edgeList.push_back(tempEdge);
 		edgeList.back().swap();
 				
 	}
 
 	
 	stxxl::sort(edgeList.begin(),edgeList.end(),myCmpSrc(),INTERNAL_MEMORY_FOR_SORTING);
-	edgeItr NewEnd = std::unique(edgeList.begin(),edgeList.end());
+	Graph::edgeItr eItr,NewEnd;
+	NewEnd = edgeList.begin() ;
+
+	for(eItr=edgeList.begin()+1; eItr!= edgeList.end(); eItr++)
+	{
+		if(!(NewEnd == eItr))
+		{
+			//STXXL_MSG(NewEnd->getSrc()<<" "<<NewEnd->getDst()<<" "<<NewEnd->getEdgeWt());
+			NewEnd++;
+			*NewEnd = *eItr;
+		}
+	}
+
+	NewEnd++;
+	//edgeItr NewEnd = std::unique(edgeList.begin(),edgeList.end());
 	edgeList.resize(NewEnd - edgeList.begin());
 	stxxl::sort(edgeList.begin(),edgeList.end(),myCmpEdgeWt(),INTERNAL_MEMORY_FOR_SORTING);
 	
@@ -160,11 +175,60 @@ void Graph::generateVertexList()
 }
 
 
-void Graph::generateGraph()
+void Graph::generateRandomGraph()
 {
 	generateEdges();
 	generateVertexList();
 }
+
+
+void Graph::generateCompleteGraph()
+{
+
+	unsigned int weight;
+	
+	noEdges = noVertices * (noVertices - 1) / 2;
+	edgeList.clear();
+	
+
+	for (unsigned int i=0; i<noVertices; i++)
+	{
+		for (unsigned int j=0; j<i; j++) 
+		{
+			weight = randomEdgeWeight();
+			Edge tempEdge(i+1,j+1,weight);
+			edgeList.push_back(tempEdge);
+			edgeList.push_back(tempEdge);
+			edgeList.back().swap();
+		}
+	}
+	STXXL_MSG("Sorting edges ");	
+	stxxl::sort(edgeList.begin(),edgeList.end(),myCmpSrc(),INTERNAL_MEMORY_FOR_SORTING);
+	
+	Graph::edgeItr eItr,NewEnd;
+	NewEnd = edgeList.begin() ;
+
+	for(eItr=edgeList.begin()+1; eItr!= edgeList.end(); eItr++)
+	{
+		if(!(NewEnd == eItr))
+		{
+			//STXXL_MSG(NewEnd->getSrc()<<" "<<NewEnd->getDst()<<" "<<NewEnd->getEdgeWt());
+			NewEnd++;
+			*NewEnd = *eItr;
+		}
+	}
+
+	NewEnd++;
+	//edgeItr NewEnd = std::unique(edgeList.begin(),edgeList.end());
+	edgeList.resize(NewEnd - edgeList.begin());
+	stxxl::sort(edgeList.begin(),edgeList.end(),myCmpEdgeWt(),INTERNAL_MEMORY_FOR_SORTING);
+	
+	noEdges = edgeList.size()/2;	
+	STXXL_MSG("Edge vector created of size: "<<edgeList.size());
+
+	generateVertexList();
+}
+
 
 void Graph::printGraph()
 {
