@@ -1,0 +1,399 @@
+#include "buckets.h"
+
+
+/**
+Initializes the external buckets and distributes the edges
+to the external buckets.
+*/
+void Buckets::initBuckets(unsigned int noOfBuckets)
+{    
+	// create the external buckets
+	extBuckets.resize(noOfBuckets);
+	STXXL_MSG("Creating external buckets: "<<extBuckets.size());
+		 
+	for (unsigned int i=1; i<extBuckets.size(); i++) 
+	{
+		extBuckets[i] = new bucketType();
+	}
+}
+
+void Buckets::constructFirstBucket()
+{
+	typedef typename Graph::edgeItr edgeItr;
+	int bucketId;
+	edgeItr eItr;
+	
+	//add edges to the buckets
+	STXXL_MSG("Filling first bucket: "<<extBuckets.size()<<" "<<_graph.getNoVertices());
+	
+	extBuckets[0] = new bucketType();
+	
+	bucketId =0;
+
+	for(eItr=_graph.getFirstEdge(); !(_graph.checkEdgeListEnd(eItr)) && !(sharedBlock.isFull()); eItr++)
+	{
+		sharedBlock.push(*eItr);
+		addToExternalBucket(*eItr,bucketId);
+	}
+	for(; !(_graph.checkEdgeListEnd(eItr)); eItr++)
+	{
+		addToExternalBucket(*eItr,bucketId);
+	}
+
+}
+void Buckets::constructBuckets()
+{
+	typedef typename Graph::edgeItr edgeItr;
+	unsigned int limit,i=0,j=0,pos=0,bucketId,rev;
+
+	edgeItr eItr;
+	extIterator itr;	
+	Edge e,temp,*thresh;
+	//add edges to the buckets
+	STXXL_MSG("Filling external buckets: "<<extBuckets.size());
+	
+	
+	
+
+	//STXXL_MSG("Last bucket filled "<<extBuckets.size());
+	//delete &_graph;
+	//STXXL_MSG("Cache size: "<<sharedBlock.getSize()<<" Cache last value "<<sharedBlock.get(sharedBlock.getSize()-1).getSrc());
+	
+	for(bucketId = 1; bucketId < extBuckets.size(); bucketId++)
+	{
+		rev = extBuckets.size() - bucketId-1;
+		limit = pow(2,pow(2,rev)) - 1;
+		
+		for(j=0,pos=0;j<sharedBlock.getSize();)
+		{	
+			e = sharedBlock.get(j);		
+			temp =e;
+			for(i=0; i<limit &&  j<sharedBlock.getSize() && e.getSrc() == sharedBlock.get(j).getSrc();i++,j++)
+			{
+				temp = sharedBlock.get(j);
+				if(temp.getDst()!= std::numeric_limits<unsigned int>::max())
+				{	//STXXL_MSG("2 (" <<(temp.getSrc())<<", " <<(temp.getDst())<<", "<<(temp.getEdgeWt())<<") ");	
+					addToExternalBucket(temp,bucketId);
+					sharedBlock.push(temp,pos);
+					pos++;
+				}
+				
+				
+			}
+			if(i==limit && j<sharedBlock.getSize() && e.getSrc() == sharedBlock.get(j).getSrc() && sharedBlock.get(j).getDst() != std::numeric_limits<unsigned int>::max())
+			{
+				thresh = new Edge(e.getSrc(),std::numeric_limits<unsigned int>::max(),sharedBlock.get(j).getEdgeWt());
+				j++;	
+				if(sharedBlock.checkSpace(pos))
+				{	sharedBlock.push(*thresh,pos);
+					pos++;
+				}
+			}
+			else 
+			{	thresh = new Edge(e.getSrc(),std::numeric_limits<unsigned int>::max(),std::numeric_limits<unsigned int>::max());
+				if(sharedBlock.checkSpace(pos))
+				{	sharedBlock.push(*thresh,pos);
+					pos++;
+				}
+			}
+
+			addToExternalBucket(*thresh,bucketId);
+			
+			i= limit+1;
+
+			for(;j<sharedBlock.getSize()  && e.getSrc() == sharedBlock.get(j).getSrc() ;j++);
+					
+		}
+
+		STXXL_MSG("Cache filled til "<<pos<<" "<<j<<" Current bucket "<<bucketSize(bucketId));
+		
+		itr = beginExternalBucket(bucketId-1)+j;
+		for(;itr!= endExternalBucket(bucketId-1) && sharedBlock.checkSpace(pos);)
+		{
+			
+			if(i==limit+1)
+				i=0;
+			else if(i==limit && itr!= endExternalBucket(bucketId-1)  && e.getSrc() == itr->getSrc() && itr->getDst()!=std::numeric_limits<unsigned int>::max())
+			{	thresh = new Edge(e.getSrc(),std::numeric_limits<unsigned int>::max(),itr->getEdgeWt());
+				addToExternalBucket(*thresh,bucketId);
+				itr++;
+				i =0;
+				if(sharedBlock.checkSpace(pos))
+				{	sharedBlock.push(*thresh,pos);
+					pos++;
+				}
+			}
+			else if(i<=limit && i!=0 && itr!= endExternalBucket(bucketId-1)  && e.getSrc() != itr->getSrc())
+			{	thresh = new Edge(e.getSrc(),std::numeric_limits<unsigned int>::max(),std::numeric_limits<unsigned int>::max());
+				addToExternalBucket(*thresh,bucketId);
+				i =0;
+				if(sharedBlock.checkSpace(pos))
+				{	sharedBlock.push(*thresh,pos);
+					pos++;
+				}
+			}
+
+			
+
+			e = *itr;
+			for(;i<limit &&  itr!= endExternalBucket(bucketId-1) && e.getSrc() == itr->getSrc() && (sharedBlock.checkSpace(pos));i++,itr++)
+			{
+				if(itr->getDst()!= std::numeric_limits<unsigned int>::max())
+				{
+					sharedBlock.push(*itr,pos);
+					pos++;
+					addToExternalBucket(*itr,bucketId);
+					//STXXL_MSG(" (" <<(itr->getSrc())<<", " <<(itr->getDst())<<", "<<(itr->getEdgeWt())<<") ");
+				}
+			}
+			if(i==limit && itr!= endExternalBucket(bucketId-1)  && e.getSrc() == itr->getSrc() && itr->getDst()!=std::numeric_limits<unsigned int>::max())
+			{
+				thresh = new Edge(e.getSrc(),std::numeric_limits<unsigned int>::max(),itr->getEdgeWt());
+				itr++;
+			}
+			else 
+				thresh = new Edge(e.getSrc(),std::numeric_limits<unsigned int>::max(),std::numeric_limits<unsigned int>::max());
+
+			addToExternalBucket(*thresh,bucketId);
+			i = limit+1;
+			if(sharedBlock.checkSpace(pos))
+			{	sharedBlock.push(*thresh,pos);
+				pos++;
+			}
+			for(;itr!= endExternalBucket(bucketId-1) && e.getSrc() == itr->getSrc();itr++);
+		}
+			
+	
+		for(;itr!= endExternalBucket(bucketId-1);)
+		{
+		
+			if(i==limit+1)
+				i=0;
+			else if(i==limit && itr!= endExternalBucket(bucketId-1)  && e.getSrc() == itr->getSrc() && itr->getDst()!=std::numeric_limits<unsigned int>::max())
+			{	thresh = new Edge(e.getSrc(),std::numeric_limits<unsigned int>::max(),itr->getEdgeWt());
+				addToExternalBucket(*thresh,bucketId);
+				i =0;
+			}
+			else if(i==limit && i!=0 && itr!= endExternalBucket(bucketId-1)  && e.getSrc() != itr->getSrc())
+			{	thresh = new Edge(e.getSrc(),std::numeric_limits<unsigned int>::max(),std::numeric_limits<unsigned int>::max());
+				addToExternalBucket(*thresh,bucketId);
+				i =0;
+			}
+			e = *itr;
+			for(;i<limit && itr!= endExternalBucket(bucketId-1) && e.getSrc() == itr->getSrc();i++,itr++)
+			{
+				if(itr->getDst() != std::numeric_limits<unsigned int>::max())
+				{	addToExternalBucket(*itr,bucketId);
+					//STXXL_MSG("3 (" <<(itr->getSrc())<<", " <<(itr->getDst())<<", "<<(itr->getEdgeWt())<<") ");
+				}
+		
+			}
+			if(i==limit && itr!= endExternalBucket(bucketId-1)  && e.getSrc() == itr->getSrc() && itr->getDst()!=std::numeric_limits<unsigned int>::max())
+				thresh = new Edge(e.getSrc(),std::numeric_limits<unsigned int>::max(),itr->getEdgeWt());
+			else 
+				thresh = new Edge(e.getSrc(),std::numeric_limits<unsigned int>::max(),std::numeric_limits<unsigned int>::max());
+
+			addToExternalBucket(*thresh,bucketId);
+			i=limit+1;
+
+
+			for(;itr!= endExternalBucket(bucketId-1) && e.getSrc() == itr->getSrc();itr++);
+		}
+		STXXL_MSG("End filled til "<<pos<<" "<<bucketSize(bucketId));
+		sharedBlock.setSize(pos);
+		
+			
+	}
+	sharedBlock.flush();
+}
+
+
+void Buckets::constructBucketsFromXi(Graph::edgeType &Xi,Graph &inputGraph,int fi)
+{
+	typedef typename Graph::edgeItr edgeItr;
+	unsigned int limit,i=0,rev;
+	unsigned int bucketId,revFi;
+	edgeItr eItr;
+	Edge e,*thresh=NULL;
+	Graph::vertexItr vItr;
+	
+
+	//add edges to the buckets
+	STXXL_MSG("Filling external buckets: "<<extBuckets.size()<<" fi "<<fi);
+	revFi = extBuckets.size()- fi -1;
+	
+	for(bucketId = revFi+1 ; bucketId < extBuckets.size(); bucketId++)
+	{
+
+		//STXXL_MSG(" Bucket No: "<<bucketId);
+		cleanBucket(bucketId);
+		rev = extBuckets.size()- bucketId-1;
+
+		limit = pow(2,pow(2,rev)) - 1;
+		vItr=inputGraph.getFirstVertex();
+		for(eItr=Xi.begin();eItr!=Xi.end();)
+		{	
+			e = *eItr;
+			
+			for(i=0; i<limit &&  eItr!=Xi.end() && e.getSrc() == eItr->getSrc();i++,eItr++)
+			{
+				//STXXL_MSG(" (" <<(eItr->getSrc())<<", " <<(eItr->getDst())<<", "<<(eItr->getEdgeWt())<<") ");
+				addToExternalBucket(*eItr,bucketId);
+			
+			}
+			
+			while(!(inputGraph.checkVertexListEnd(vItr)) && vItr->first.getVertexId() < e.getSrc())
+				vItr++;
+			
+			if(i==limit && eItr!=Xi.end() && vItr->first.getVertexId() == e.getSrc() && e.getSrc() == eItr->getSrc())
+			{	
+				thresh = new Edge(vItr->first.getVertexId(),std::numeric_limits<unsigned int>::max(),eItr->getEdgeWt());	
+			}
+			else if(i<=limit && vItr->first.getVertexId() == e.getSrc())
+			{	thresh = new Edge(vItr->first.getVertexId(),std::numeric_limits<unsigned int>::max(),vItr->first.getRi());
+				
+			}
+			addToExternalBucket(*thresh,bucketId);
+			for(;eItr!=Xi.end() && e.getSrc() == eItr->getSrc();eItr++);
+					
+		}
+	}
+	STXXL_MSG("End constructBucketsFromXi");
+}
+	
+void Buckets::cleanUpBucket(StarGraph &star,unsigned int bucketId)
+{
+	StarGraph::starItr starItr;
+	int id = extBuckets.size()- bucketId -1;
+	cleanBucket(id);
+	for(starItr = star.begin(); starItr!=star.end(); starItr++)
+	{
+		addToExternalBucket(starItr->starEdge,id);
+	}
+	
+	STXXL_MSG("End cleanUpBucket: "<<bucketSize(id));
+	
+}
+			
+void Buckets::createStarGraph(StarGraph &star,int bucketId[])
+{
+	starElem *elem;
+	extIterator itr,final;
+	star.clear();
+	for(int j= extBuckets.size()- 2; j >=0;j--)
+	{
+		if(bucketId[j]==1)	
+		{
+			STXXL_MSG("in bucket: "<<j);
+			saveStarGraph(bucketId,j);
+			for(itr = beginExternalBucket(j);itr!= endExternalBucket(j);itr++)
+			{
+				elem = new starElem(0,new Edge(itr->getSrc(),itr->getDst(),itr->getEdgeWt()));
+				star.add(*elem);
+			}
+		}
+	}
+	STXXL_MSG("createStarGraph: "<<star.size());
+	stxxl::sort(star.begin(),star.end(),starCmpSrc(),INTERNAL_MEMORY_FOR_SORTING);
+	
+}
+
+void Buckets::saveStarGraph(int bucketId[],int fi)
+{
+	extIterator itr,final;
+	int  i;
+
+	for(i=fi-1;i >= 0 && bucketId[i]!=1 ;i--);
+	if(i >= 0)
+	{	
+		STXXL_MSG("In bucket: "<<i<<" final: "<<fi);
+		stxxl::sort(beginExternalBucket(i),endExternalBucket(i),myCmpDst(),INTERNAL_MEMORY_FOR_SORTING);
+		for(itr = beginExternalBucket(i),final=beginExternalBucket(fi);itr!= endExternalBucket(i);itr++)
+		{
+			while(final!=endExternalBucket(fi) && final->getSrc() < itr->getDst())
+				final++;
+			if(final->getSrc()==itr->getDst())
+			{
+				itr->setDst(final->getDst());
+			}
+		}
+		stxxl::sort(beginExternalBucket(i),endExternalBucket(i),myCmpSrc(),INTERNAL_MEMORY_FOR_SORTING);
+	}
+	STXXL_MSG("saveStarGraph ");
+}
+				
+void Buckets::printBuckets()		
+{
+
+	for(int bucketId = extBuckets.size() -1;bucketId >= 0;bucketId--)
+	{
+		STXXL_MSG(" Bucket No: "<<bucketId);
+		for(extIterator itr = beginExternalBucket(bucketId);itr!= endExternalBucket(bucketId);itr++)
+		{
+			STXXL_MSG(" (" <<(itr->getSrc())<<", " <<(itr->getDst())<<", "<<(itr->getEdgeWt())<<") ");
+		}
+	}
+}
+
+void Buckets::cleanUpBucket()
+{
+	for(unsigned int i=1;i<extBuckets.size();i++)
+	{
+		extBuckets[i]->clear();
+		delete extBuckets[i];
+	}
+	extBuckets.resize(1);
+	
+}
+/*
+		
+int main()
+{
+	unsigned int num_v,num_e;
+	
+	STXXL_MSG("Graph\n");
+	STXXL_MSG("Num vertices");
+	std::cin>>num_v;
+	STXXL_MSG("Edges :");
+	std::cin>>num_e;
+	
+	Graph g(num_v,num_e);
+	g.generateGraph();
+	g.printGraph();
+	
+	float c,t;
+	
+	t = num_e/(float) num_v;
+	t = pow(t,2);
+	c = log10(t) / log10(2.0);
+	c = log10(c) / log10(2.0);
+	int count = ceil(c);
+	STXXL_MSG("Count: "<<c);
+
+	stxxl::stats_data stats_begin(*stxxl::stats::get_instance());
+
+    	stxxl::timer Timer;
+	Timer.start();
+	
+	Buckets b(g,count);
+	b.constructBuckets();
+
+
+	STXXL_MSG("Buckets creation elapsed time: " << (Timer.mseconds() / 1000.) <<
+              " seconds : " << (double(num_e) / (Timer.mseconds() / 1000.)) << " edges per sec");
+
+    	std::cout << stxxl::stats_data(*stxxl::stats::get_instance()) - stats_begin;
+	b.printBuckets();
+
+	return 0;
+}			
+		
+*/		
+		
+			
+				
+
+
+	
+
+

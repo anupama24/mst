@@ -1,0 +1,80 @@
+#ifndef EULERELEM_H
+#define EULERELEM_H
+#endif
+
+class EulerElem
+{
+	unsigned int src,dst;
+	unsigned int edgeWt;
+	unsigned int twinPos;
+	unsigned int succ;
+
+public:	
+	ListElem() {
+		succ= std::numeric_limits<unsigned int>::max();
+	}
+	ListElem(unsigned int src_,unsigned int dst_,unsigned int wt_,unsigned int pos_): src(src_), dst(dst_),edgeWt(wt_), twinPos(pos_) {
+		succ= std::numeric_limits<unsigned int>::max();
+	} 
+
+	
+	unsigned int getSrc() const;
+	void setSrc(unsigned int src);
+	unsigned int getDst() const;
+	void setDst(unsigned int dst);
+	unsigned int getEdgeWt() const;
+	void setEdgeWt(unsigned int wt);
+	unsigned int getTwinPos() const;
+	void setTwinPos(unsigned int pos);
+	unsigned int getSucc() const;
+	void setSucc(unsigned int s);
+
+
+	
+};
+
+//Getters and Setters
+unsigned int ListElem::getSrc() const
+{
+	return src;
+}
+void ListElem::setSrc(unsigned int src)
+{
+	this->src = src;
+}
+
+unsigned int ListElem::getDst() const
+{
+	return dst;
+}
+void ListElem::setDst(unsigned int dst)
+{
+	this->dst = dst;
+}
+
+unsigned int ListElem::getEdgeWt() const
+{
+	return edgeWt;
+}
+void ListElem::setEdgeWt(unsigned int wt)
+{
+	edgeWt = wt;
+}
+
+unsigned int ListElem::getTwinPos() const
+{
+	return twinPos;
+}
+void ListElem::setTwinPos(unsigned int pos)
+{
+	twinPos = pos;
+}
+
+unsigned int ListElem::getSucc() const
+{
+	return succ;
+}
+void ListElem::setSucc(unsigned int s)
+{
+	succ = s;
+}
