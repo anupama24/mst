@@ -13,6 +13,7 @@ public:
 	StarGraph(){}
 
 	typedef starType::iterator starItr;
+	typedef starType::const_iterator const_starItr;
 	
 	void add(starElem elem);
 
@@ -30,6 +31,7 @@ public:
 	}
 	
 	void resize(starItr end,starItr begin);
+	void flush();
 	void clear();
 	void print();
 
@@ -46,7 +48,12 @@ inline void StarGraph::resize(starItr end,starItr begin)
 }
 inline void StarGraph::clear()
 {
+	starGraph.flush();
 	starGraph.clear();
+}
+inline void StarGraph::flush()
+{
+	starGraph.flush();
 }
 void StarGraph::print()
 {

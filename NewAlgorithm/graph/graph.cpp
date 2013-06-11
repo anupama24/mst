@@ -23,6 +23,10 @@ void Graph::addEdge(Edge &temp)
 	edgeList.push_back(temp);
 }
 
+void Graph::addEdge(const Edge &temp)
+{
+	edgeList.push_back(temp);
+}
 void Graph::addVertex(vertexType &v)
 {
 	vertexList.push_back(v);
@@ -89,12 +93,14 @@ void Graph::generateEdges()
 			while(e->getDst() == e->getSrc()) 
 				e->setDst(randomNodeID());
 			itr = stxxl::find(edgeList.begin(), edgeList.end(), *e, 4);
+			delete e;
 					
 		}
 		while(itr!=edgeList.end());
 		edgeList.push_back(*e);
 		edgeList.push_back(*e);
 		edgeList.back().swap();
+
 		
 	}
 		
@@ -154,21 +160,9 @@ void Graph::generateVertexList()
 		result.first = *v;
 		for(;itr!=edgeList.end()&&itr->getSrc()!=v->getVertexId();itr++);
 		
-		/*if(itr==edgeList.end())
-		{
-			edge *Edge = new edge(v->vertex_id,randomNodeID(),randomEdgeWeight());
-			while(Edge->dst <= Edge->src) 
-				Edge->dst = randomNodeID();
-			edgeList.push_back(*Edge);
-			edgeList.push_back(*Edge);
-			edgeList.back().swap();
-			stxxl::sort(edgeList.begin(),edgeList.end(),cmp_edge_wt(),150 * 1024*1024);
-			itr = stxxl::find(edgeList.begin(), edgeList.end(), *Edge, 4);
-
-		}*/
-		
 		result.second= itr;
-		vertexList.push_back(result);
+		vertexList.push_back(result);	
+		delete v;
 
 			
 	}
@@ -198,17 +192,7 @@ void Graph::printGraph()
 		
 	}
 
-	/*vertexItr v_itr;
-	vertexType result;
-	Edge e;
-	STXXL_MSG("Size of vertex main: "<<vertexList.size());
-	for(v_itr=vertexList.begin();v_itr!= vertexList.end();v_itr++)
-	{
-		result = *v_itr;
-		e = *(result.second);
-		STXXL_MSG(" V: "<<(v_itr->first).getVertexId()<<" ("<<(e.getSrc())<<", " <<(e.getDst())<<", "<<(e.getEdgeWt())<<") ");
-			
-	}*/
+	
 }
 
 /*

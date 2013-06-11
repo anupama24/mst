@@ -7,7 +7,6 @@ class EulerElem
 	unsigned int src,dst;
 	unsigned int edgeWt;
 	unsigned int pos;
-	unsigned int root;
 	unsigned int succ;
 
 public:	
@@ -15,10 +14,14 @@ public:
 		succ= std::numeric_limits<unsigned int>::max();
 	}
 	EulerElem(unsigned int src_,unsigned int dst_,unsigned int wt_,unsigned int pos_): src(src_), dst(dst_),edgeWt(wt_), pos(pos_) {
-		root = std::numeric_limits<unsigned int>::min(); 		
 		succ= std::numeric_limits<unsigned int>::max();
 	} 
+
 	EulerElem(unsigned int src_,unsigned int dst_,unsigned int wt_,unsigned int pos_,unsigned int s): src(src_), dst(dst_),edgeWt(wt_), pos(pos_), succ(s) {} 
+
+	~EulerElem()
+	{
+	}
 	
 	unsigned int getSrc() const;
 	void setSrc(unsigned int src);
@@ -28,8 +31,6 @@ public:
 	void setEdgeWt(unsigned int wt);
 	unsigned int getPos() const;
 	void setPos(unsigned int pos);
-	unsigned int getRoot() const;
-	void setRoot(unsigned int r);
 	unsigned int getSucc() const;
 	void setSucc(unsigned int s);
 
@@ -82,14 +83,7 @@ void EulerElem::setPos(unsigned int p)
 	pos = p;
 }
 
-unsigned int EulerElem::getRoot() const
-{
-	return root;
-}
-void EulerElem::setRoot(unsigned int r)
-{
-	root = r;
-}
+
 
 unsigned int EulerElem::getSucc() const
 {

@@ -1,15 +1,5 @@
 #include "directedGraph.h"
 
-
-unsigned int DirectedGraph::getNoVertices()
-{
-	return noVertices;
-}
-void DirectedGraph::setNoVertices(unsigned int numV)
-{
-	noVertices = numV;
-}
-
 unsigned int DirectedGraph::getNoEdges()
 {
 	return noEdges;
@@ -24,7 +14,7 @@ void DirectedGraph::createGraph(Graph::edgeType &edgeSet)
 {
 
 	
-	Graph::edgeItr minItr;
+	Graph::const_edgeItr minItr;
 	DirectedEdge *e;
 		
 	//g.printGraph();
@@ -35,22 +25,25 @@ void DirectedGraph::createGraph(Graph::edgeType &edgeSet)
 	
 	for(minItr = edgeSet.begin(); minItr != edgeSet.end(); minItr++)
 	{
-		e = new DirectedEdge(minItr->getSrc(),minItr->getDst(),minItr->getEdgeWt());
+		e = new DirectedEdge(minItr->getSrc(),minItr->getDst(),minItr->getOrigSrc(),minItr->getOrigDst(),minItr->getEdgeWt());
 		dirEdgeList.push_back(*e);
+		delete e;
 	}
 
 	noEdges=dirEdgeList.size();	
-
+	edgeSet.flush();
+	edgeSet.clear();
 	stxxl::sort(dirEdgeList.begin(),dirEdgeList.end(),dirCmpSrc(),INTERNAL_MEMORY_FOR_SORTING);
 	STXXL_MSG("Directed graph created");
 	//printGraph();
 	
 }
 
-void DirectedGraph::detectCycle(MST &mst,Graph &inputGraph)
+void DirectedGraph::detectCycle()
 {
 	dirEdgeType destEdgeList;
-	dirEdgeItr eItr,dstItr,result;
+	const_dirEdgeItr eItr,dstItr;
+	dirEdgeItr result;
 
 	destEdgeList = dirEdgeList;
 	stxxl::sort(destEdgeList.begin(),destEdgeList.end(),dirCmpDst(),INTERNAL_MEMORY_FOR_SORTING);
@@ -60,8 +53,7 @@ void DirectedGraph::detectCycle(MST &mst,Graph &inputGraph)
 
 	pairListType::iterator listItr,parItr;
 	pairType elem;
-	Edge *e;
-
+	
 	
 	dstItr = destEdgeList.begin();	
 	for(eItr=dirEdgeList.begin();eItr!=dirEdgeList.end();eItr++)
@@ -81,16 +73,14 @@ void DirectedGraph::detectCycle(MST &mst,Graph &inputGraph)
 	
 
 	stxxl::sort(cycleList.begin(),cycleList.end(),cmpFirst(),INTERNAL_MEMORY_FOR_SORTING);
-	Graph::vertexItr vItr = inputGraph.getFirstVertex();
-
+	
 	result = dirEdgeList.begin();
 	for(listItr = cycleList.begin(),eItr=dirEdgeList.begin();eItr!=dirEdgeList.end() && listItr!= cycleList.end();eItr++)
 	{
 		
 		while(listItr!= cycleList.end() && listItr->first < eItr->getSrc())
 			listItr++;
-		while(!(inputGraph.checkVertexListEnd(vItr)) && vItr->first.getVertexId() < eItr->getSrc())
-				vItr++;
+		
 		if(listItr->first == listItr->second && listItr->first == eItr->getSrc() && eItr->getSrc() < eItr->getDst())
 		{
 		 	roots.push_back(*eItr);	
@@ -99,11 +89,6 @@ void DirectedGraph::detectCycle(MST &mst,Graph &inputGraph)
 		else
 		{	*result=*eItr;
 			result++;
-			/*if(vItr->first.getVertexId() == eItr->getSrc())
-			{
-				e = new Edge(eItr->getOrigDst(), eItr->getOrigSrc(), eItr->getEdgeWt());
-				mst.addEdge(*e);
-			}*/
 		}
 	}
 
@@ -111,43 +96,34 @@ void DirectedGraph::detectCycle(MST &mst,Graph &inputGraph)
 
 	for(;eItr!=dirEdgeList.end();eItr++)
 	{	
-		while(!(inputGraph.checkVertexListEnd(vItr)) && vItr->first.getVertexId() < eItr->getSrc())
-				vItr++;
 		*result=*eItr;
 		result++;
-		/*if(vItr->first.getVertexId() == eItr->getSrc())
-		{
-			e = new Edge(eItr->getOrigDst(), eItr->getOrigSrc(), eItr->getEdgeWt());
-			mst.addEdge(*e);
-		}*/
+		
 	}
 	dirEdgeList.resize(result - dirEdgeList.begin());
 
 	noEdges=dirEdgeList.size();
-	//stxxl::sort(dirEdgeList.begin(),dirEdgeList.end(),dirCmpEdge(),INTERNAL_MEMORY_FOR_SORTING);	
-	
 				
 	//printGraph();
-	
+	stxxl::sort(getFirstRoot(),getRootEnd(),dirCmpSrc(),INTERNAL_MEMORY_FOR_SORTING);
+
 	STXXL_MSG("Number of edges: "<<noEdges<<std::endl<<" No of roots: "<<roots.size());
-	//STXXL_MSG("MST size: "<<mst.getMSTSize());
 	STXXL_MSG("Cycle detected");
 	
 	destEdgeList.clear();	
-	cycleList.clear();			
-		
+	cycleList.clear();		
 	
 
 }
 		
 void DirectedGraph::addEdgesMST(StarGraph &star,MST &mst,Graph &inputGraph)
 {
-	StarGraph::starItr starItr;
-	dirEdgeItr eItr;
+	StarGraph::const_starItr starItr;
+	const_dirEdgeItr eItr;
 	starItr = star.begin();
 	Edge *e;
 
-	Graph::vertexItr vItr = inputGraph.getFirstVertex();
+	Graph::const_vertexItr vItr = inputGraph.getFirstVertex();
 	if(roots.size()!=0)
 	{	
 		for(eItr=dirEdgeList.begin();eItr!=dirEdgeList.end();eItr++)
@@ -160,20 +136,16 @@ void DirectedGraph::addEdgesMST(StarGraph &star,MST &mst,Graph &inputGraph)
 			{
 				e = new Edge(eItr->getOrigDst(), eItr->getOrigSrc(), eItr->getEdgeWt());
 				mst.addEdge(*e);
+				delete e;
 			}
 		}
 	}
+	clear();
 	STXXL_MSG("MST size: "<<mst.getMSTSize());
+	
 }
 		
 
-	
-
-
-void DirectedGraph::copyEdgeList(dirEdgeType &list)
-{
-	list = dirEdgeList;
-}
 
 DirectedGraph::dirEdgeItr DirectedGraph::getFirstRoot()
 {
@@ -193,17 +165,6 @@ DirectedGraph::dirEdgeItr DirectedGraph::getRootEnd()
 	return roots.end();
 }
 
-bool DirectedGraph::isRoot(unsigned int src,unsigned int dst,unsigned int wt)
-{
-	DirectedEdge *e;
-	e = new DirectedEdge(src,dst,wt);	
-	
-	dirEdgeItr temp = stxxl::find(roots.begin(),roots.end(),*e, 4);
-
-	return (temp!=roots.end());
-
-}
-
 
 
 void DirectedGraph::printGraph()
@@ -211,7 +172,6 @@ void DirectedGraph::printGraph()
 	dirEdgeItr itr;
 	
 	STXXL_MSG("**Directed Graph -  Edge Listing **"<<std::endl);
-	STXXL_MSG("No of vertices: "<<noVertices);
 	STXXL_MSG("Number of edges: "<<noEdges<<std::endl);
 	
 	for(itr=dirEdgeList.begin();itr!=dirEdgeList.end();itr++)

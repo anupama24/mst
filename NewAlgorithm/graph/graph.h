@@ -32,28 +32,13 @@ public:
 	Graph(){}
 	Graph(unsigned int num_v,unsigned int num_e):vertexList(num_v),edgeList(2*num_e),noVertices(num_v),noEdges(num_e)
 	{
-		
+		srand(time(NULL));
 		STXXL_MSG("Creating a graph, addr=" << this);
 		STXXL_MSG("Vertices: " << num_v);
 		STXXL_MSG("Edges: " << num_e);
 		
-		
-		//generate_graph(noVertices,noEdges,wt_range);
+			
 	}
-
-	//Comparator for vertex vector pair
-	struct myCmpVer
-	{
-		Graph &parent;
-		myCmpVer(Graph &g):parent(g){}
-		vertexType min_value()  { 
-			return vertexType(Vertex(std::numeric_limits<unsigned int>::min()),parent.edgeList.end()); };
-		vertexType max_value() const { 
-			return vertexType(Vertex(std::numeric_limits<unsigned int>::max()),parent.edgeList.end()); };
-	  	bool operator () (const vertexType & a, const vertexType & b) const {
-			return a.first.getVertexId() < b.first.getVertexId() || (a.first.getVertexId() == b.first.getVertexId() && a.first.getRi() < b.first.getRi());
-		}
-	};
 
 	/** Returns a random vertex id. */
 	inline unsigned int randomNodeID() {
@@ -105,6 +90,13 @@ public:
 		noVertices = 0;
 		noEdges = 0;
 	}
+	
+	inline void flush()
+	{
+		edgeList.flush();
+		vertexList.flush();
+		
+	}
 
 	inline unsigned int getEdgeListSize()
 	{
@@ -126,6 +118,7 @@ public:
 	void generateVertexList();
 	void printGraph();
 	void addEdge(Edge &temp);
+	void addEdge(const Edge &temp);
 	void addVertex(vertexType &v);
 	void swapEdge();
 

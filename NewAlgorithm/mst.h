@@ -22,6 +22,11 @@ public:
 	{
 		mstTree.clear();
 	}
+	void flush()
+	{
+		mstTree.flush();
+	}
+
 
 	unsigned int getMSTSize();
 	unsigned int getNoVertices();

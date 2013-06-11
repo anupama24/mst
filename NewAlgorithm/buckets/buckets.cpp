@@ -8,10 +8,17 @@ to the external buckets.
 void Buckets::initBuckets(unsigned int noOfBuckets)
 {    
 	// create the external buckets
+	//unsigned int prevSize = extBuckets.size();
+	unsigned int i;
+
 	extBuckets.resize(noOfBuckets);
 	STXXL_MSG("Creating external buckets: "<<extBuckets.size());
-		 
-	for (unsigned int i=1; i<extBuckets.size(); i++) 
+	/*if(extBuckets[0]!=NULL)
+		i=prevSize;
+	else	
+		i=1;
+	*/	 
+	for (i=1; i<extBuckets.size(); i++) 
 	{
 		extBuckets[i] = new bucketType();
 	}
@@ -19,7 +26,7 @@ void Buckets::initBuckets(unsigned int noOfBuckets)
 
 void Buckets::constructFirstBucket()
 {
-	typedef typename Graph::edgeItr edgeItr;
+	typedef typename Graph::const_edgeItr edgeItr;
 	int bucketId;
 	edgeItr eItr;
 	
@@ -43,12 +50,12 @@ void Buckets::constructFirstBucket()
 }
 void Buckets::constructBuckets()
 {
-	typedef typename Graph::edgeItr edgeItr;
+	typedef typename Graph::const_edgeItr edgeItr;
 	unsigned int limit,i=0,j=0,pos=0,bucketId,rev;
 
 	edgeItr eItr;
-	extIterator itr;	
-	Edge e,temp,*thresh;
+	const_extIterator itr;	
+	Edge e,temp,*thresh=NULL;
 	//add edges to the buckets
 	STXXL_MSG("Filling external buckets: "<<extBuckets.size());
 	
@@ -102,6 +109,7 @@ void Buckets::constructBuckets()
 			i= limit+1;
 
 			for(;j<sharedBlock.getSize()  && e.getSrc() == sharedBlock.get(j).getSrc() ;j++);
+			delete thresh;
 					
 		}
 
@@ -122,6 +130,7 @@ void Buckets::constructBuckets()
 				{	sharedBlock.push(*thresh,pos);
 					pos++;
 				}
+				delete thresh;
 			}
 			else if(i<=limit && i!=0 && itr!= endExternalBucket(bucketId-1)  && e.getSrc() != itr->getSrc())
 			{	thresh = new Edge(e.getSrc(),std::numeric_limits<unsigned int>::max(),std::numeric_limits<unsigned int>::max());
@@ -131,6 +140,7 @@ void Buckets::constructBuckets()
 				{	sharedBlock.push(*thresh,pos);
 					pos++;
 				}
+				delete thresh;
 			}
 
 			
@@ -161,6 +171,7 @@ void Buckets::constructBuckets()
 				pos++;
 			}
 			for(;itr!= endExternalBucket(bucketId-1) && e.getSrc() == itr->getSrc();itr++);
+			delete thresh;
 		}
 			
 	
@@ -173,11 +184,13 @@ void Buckets::constructBuckets()
 			{	thresh = new Edge(e.getSrc(),std::numeric_limits<unsigned int>::max(),itr->getEdgeWt());
 				addToExternalBucket(*thresh,bucketId);
 				i =0;
+				delete thresh;
 			}
 			else if(i==limit && i!=0 && itr!= endExternalBucket(bucketId-1)  && e.getSrc() != itr->getSrc())
 			{	thresh = new Edge(e.getSrc(),std::numeric_limits<unsigned int>::max(),std::numeric_limits<unsigned int>::max());
 				addToExternalBucket(*thresh,bucketId);
 				i =0;
+				delete thresh;
 			}
 			e = *itr;
 			for(;i<limit && itr!= endExternalBucket(bucketId-1) && e.getSrc() == itr->getSrc();i++,itr++)
@@ -186,6 +199,7 @@ void Buckets::constructBuckets()
 				{	addToExternalBucket(*itr,bucketId);
 					//STXXL_MSG("3 (" <<(itr->getSrc())<<", " <<(itr->getDst())<<", "<<(itr->getEdgeWt())<<") ");
 				}
+				
 		
 			}
 			if(i==limit && itr!= endExternalBucket(bucketId-1)  && e.getSrc() == itr->getSrc() && itr->getDst()!=std::numeric_limits<unsigned int>::max())
@@ -198,6 +212,7 @@ void Buckets::constructBuckets()
 
 
 			for(;itr!= endExternalBucket(bucketId-1) && e.getSrc() == itr->getSrc();itr++);
+			delete thresh;
 		}
 		STXXL_MSG("End filled til "<<pos<<" "<<bucketSize(bucketId));
 		sharedBlock.setSize(pos);
@@ -210,7 +225,7 @@ void Buckets::constructBuckets()
 
 void Buckets::constructBucketsFromXi(Graph::edgeType &Xi,Graph &inputGraph,int fi)
 {
-	typedef typename Graph::edgeItr edgeItr;
+	typedef typename Graph::const_edgeItr edgeItr;
 	unsigned int limit,i=0,rev;
 	unsigned int bucketId,revFi;
 	edgeItr eItr;
@@ -255,15 +270,16 @@ void Buckets::constructBucketsFromXi(Graph::edgeType &Xi,Graph &inputGraph,int f
 			}
 			addToExternalBucket(*thresh,bucketId);
 			for(;eItr!=Xi.end() && e.getSrc() == eItr->getSrc();eItr++);
-					
+			delete thresh;		
 		}
 	}
+	Xi.clear();
 	STXXL_MSG("End constructBucketsFromXi");
 }
 	
 void Buckets::cleanUpBucket(StarGraph &star,unsigned int bucketId)
 {
-	StarGraph::starItr starItr;
+	StarGraph::const_starItr starItr;
 	int id = extBuckets.size()- bucketId -1;
 	cleanBucket(id);
 	for(starItr = star.begin(); starItr!=star.end(); starItr++)
@@ -272,15 +288,17 @@ void Buckets::cleanUpBucket(StarGraph &star,unsigned int bucketId)
 	}
 	
 	STXXL_MSG("End cleanUpBucket: "<<bucketSize(id));
+	star.clear();
 	
 }
 			
-void Buckets::createStarGraph(StarGraph &star,int bucketId[])
+void Buckets::createStarGraph(StarGraph &star,int bucketId[],int end)
 {
-	starElem *elem;
-	extIterator itr,final;
+	
+	const_extIterator itr;
 	star.clear();
-	for(int j= extBuckets.size()- 2; j >=0;j--)
+	STXXL_MSG("Till bucket: "<<end);
+	for(int j= extBuckets.size()- 2; j >end;j--)
 	{
 		if(bucketId[j]==1)	
 		{
@@ -288,9 +306,11 @@ void Buckets::createStarGraph(StarGraph &star,int bucketId[])
 			saveStarGraph(bucketId,j);
 			for(itr = beginExternalBucket(j);itr!= endExternalBucket(j);itr++)
 			{
-				elem = new starElem(0,new Edge(itr->getSrc(),itr->getDst(),itr->getEdgeWt()));
-				star.add(*elem);
+				Edge e(itr->getSrc(),itr->getDst(),itr->getEdgeWt());
+				starElem elem(0,e);
+				star.add(elem);
 			}
+			//flush(j);
 		}
 	}
 	STXXL_MSG("createStarGraph: "<<star.size());
@@ -300,14 +320,15 @@ void Buckets::createStarGraph(StarGraph &star,int bucketId[])
 
 void Buckets::saveStarGraph(int bucketId[],int fi)
 {
-	extIterator itr,final;
+	extIterator itr;
+	const_extIterator final;
 	int  i;
 
 	for(i=fi-1;i >= 0 && bucketId[i]!=1 ;i--);
 	if(i >= 0)
 	{	
 		STXXL_MSG("In bucket: "<<i<<" final: "<<fi);
-		stxxl::sort(beginExternalBucket(i),endExternalBucket(i),myCmpDst(),INTERNAL_MEMORY_FOR_SORTING);
+		stxxl::sort(beginExternalBucket(fi),endExternalBucket(fi),myCmpSrc(),INTERNAL_MEMORY_FOR_SORTING);
 		for(itr = beginExternalBucket(i),final=beginExternalBucket(fi);itr!= endExternalBucket(i);itr++)
 		{
 			while(final!=endExternalBucket(fi) && final->getSrc() < itr->getDst())
@@ -317,8 +338,10 @@ void Buckets::saveStarGraph(int bucketId[],int fi)
 				itr->setDst(final->getDst());
 			}
 		}
-		stxxl::sort(beginExternalBucket(i),endExternalBucket(i),myCmpSrc(),INTERNAL_MEMORY_FOR_SORTING);
+		//stxxl::sort(beginExternalBucket(i),endExternalBucket(i),myCmpSrc(),INTERNAL_MEMORY_FOR_SORTING);
 	}
+	//flush(i);
+	
 	STXXL_MSG("saveStarGraph ");
 }
 				

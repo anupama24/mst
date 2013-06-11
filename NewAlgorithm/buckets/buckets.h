@@ -18,6 +18,7 @@ class Buckets
 	public:
 
 	typedef bucketType::iterator extIterator;
+	typedef bucketType::const_iterator const_extIterator;
 
 	/**
 	@param graph a reference to an EdgeVector which represents the graph
@@ -33,6 +34,7 @@ class Buckets
 
 	~Buckets()
 	{
+		STXXL_MSG("Inside buckets destructor");
 		for(unsigned int i=0;i<extBuckets.size();i++)
 		{
 			extBuckets[i]->clear();
@@ -58,7 +60,7 @@ class Buckets
 	void constructBucketsFromXi(Graph::edgeType &Xi,Graph &inputGraph,int fi);
 	void cleanUpBucket(StarGraph &star,unsigned int bucketId);
 	void resizeBucket(extIterator end,extIterator begin,unsigned int bucketId);
-	void createStarGraph(StarGraph &star,int bucketId[]);
+	void createStarGraph(StarGraph &star,int bucketId[],int end);
 	void saveStarGraph(int bucketId[],int fi);
 	void printBuckets();
 	unsigned int size()
@@ -85,6 +87,7 @@ class Buckets
 	*/
 	
 	void cleanBucket(unsigned int bucketId);
+	void flush(unsigned int bucketId);
 	
 	
 	
@@ -119,6 +122,10 @@ inline Buckets::extIterator Buckets::endExternalBucket(unsigned int bucketId)
 inline void Buckets::cleanBucket(unsigned int bucketId)
 {
 	extBuckets[bucketId]->clear();
+}
+inline void Buckets::flush(unsigned int bucketId)
+{
+	extBuckets[bucketId]->flush();
 }
 inline void Buckets::resizeBucket(extIterator end,extIterator begin,unsigned int bucketId)
 {

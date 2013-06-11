@@ -12,19 +12,21 @@
 #include <stxxl/mng>
 #include <stxxl/stack>
 
+stxxl::stats_data stats_total;
+
 // external sorting
 #define INTERNAL_MEMORY_FOR_SORTING 650*1024*1024
 
 //default template parameters of Edge & MST Vector
 #define BLOCK_SIZE 2 * 1024 *1024
-#define NO_OF_PAGES 2
-#define PAGE_SIZE 10
+#define NO_OF_PAGES 5
+#define PAGE_SIZE 1
 #define PAGER stxxl::lru
 
 //default template parameters of Vertex Vector
-#define VER_BLOCK_SIZE 2*1024 *1024
-#define VER_NO_OF_PAGES 1
-#define VER_PAGE_SIZE 10
+#define VER_BLOCK_SIZE 2 * 1024 *1024
+#define VER_NO_OF_PAGES 5
+#define VER_PAGE_SIZE 1
 
 // ** PQUEUE IMPLEMENTATION **
 #define PQUEUE_INTERNAL_MEMORY 10*1024*1024

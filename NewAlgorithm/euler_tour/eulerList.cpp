@@ -8,25 +8,24 @@ inline EulerElem EulerList::getEulerElem(unsigned int pos)
 } 
 void EulerList::createList(DirectedGraph dag)
 {
-	DirectedGraph::dirEdgeItr eItr;
-	EulerElem *elem;
+	DirectedGraph::const_dirEdgeItr eItr;
 	unsigned int pos;
 	//eulerListType twinPointer(eulerList.size());
 
+	STXXL_MSG("Inside EulerList::createList");
+	eulerList.clear();
+	EulerElem *elem;
+
 	for(eItr= dag.getFirstEdge(); !(dag.checkEdgeListEnd(eItr)) ;eItr++)
 	{
-		elem =  new EulerElem(eItr->getSrc(),eItr->getDst(),eItr->getEdgeWt(),0);
+		elem = new EulerElem(eItr->getSrc(),eItr->getDst(),eItr->getEdgeWt(),0);
 		eulerList.push_back(*elem);
 		eulerList.push_back(*elem);
 		eulerList.back().swap();
+		delete elem;
 	}
 
-	stxxl::sort(eulerList.begin(),eulerList.end(),eulerCmpSrc(),INTERNAL_MEMORY_FOR_SORTING);
-	listItr itr;
-	for(itr = eulerList.begin(),pos=0; itr!= eulerList.end(); itr++,pos++)
-	{
-		itr->setPos(pos);
-	}
+	
 
 	//twinPointer = eulerList;*/
 	stxxl::sort(eulerList.begin(),eulerList.end(),eulerCmpDst(),INTERNAL_MEMORY_FOR_SORTING);
@@ -50,8 +49,15 @@ void EulerList::createList(DirectedGraph dag)
 	}
 
 	stxxl::sort(eulerList.begin(),eulerList.end(),eulerCmpSrc(),INTERNAL_MEMORY_FOR_SORTING);
+	listItr itr;
+	for(itr = eulerList.begin(),pos=0; itr!= eulerList.end(); itr++,pos++)
+	{
+		itr->setPos(pos);
+	}
+
+	//stxxl::sort(eulerList.begin(),eulerList.end(),eulerCmpSrc(),INTERNAL_MEMORY_FOR_SORTING);
 	//eulerList = twinPointer;
-	
+	STXXL_MSG("End EulerList::createList "<<eulerList.size());
 
 }
 
@@ -71,12 +77,12 @@ void EulerList::printList()
 		if(!visited[i])
 		{
 			visited[i] = 0;
-			STXXL_MSG(" (" <<(eulerList[i].getSrc())<<", " <<(eulerList[i].getDst())<<", "<<(eulerList[i].getRoot())<<") ");
+			STXXL_MSG(" (" <<(eulerList[i].getSrc())<<", " <<(eulerList[i].getDst())<<", "<<(eulerList[i].getSucc())<<") ");
 			temp = eulerList[i].getSucc();
 			while(temp!=i)
 			{
 				visited[temp]=1;
-				STXXL_MSG(" (" <<(eulerList[temp].getSrc())<<", " <<(eulerList[temp].getDst())<<", "<<(eulerList[temp].getRoot())<<") ");
+				STXXL_MSG(" (" <<(eulerList[temp].getSrc())<<", " <<(eulerList[temp].getDst())<<", "<<(eulerList[temp].getSucc())<<") ");
 				temp = eulerList[temp].getSucc();
 			}
 		}

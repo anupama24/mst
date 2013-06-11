@@ -17,7 +17,8 @@ class Edge
 public:
 	Edge() {}
 	Edge(unsigned int src_,unsigned int dst_,unsigned int wt_): src(src_), dst(dst_),origSrc(src_),origDst(dst_),edgeWt(wt_) {} 
-		
+	
+
 
 	unsigned int getSrc() const;
 	void setSrc(unsigned int src);

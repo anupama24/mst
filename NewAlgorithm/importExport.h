@@ -73,57 +73,55 @@ void importEdgeVector(const std::string &filename,Graph &g)
    source1 target1 weight1
    source2 target2 weight2
    ...
-
-   sourceX and targetX are node indizes; the first used node index should be 0.
-   Each 32-bit number (sourceX, targetX, weightX) should be represented by 4 chars
-   and there should be no spaces and newlines after the number of edges.
-   If necessary, several files are used so that the file size limit isn't exceeded.
-
-void importEdgeVectorCompressed(const std::string &filename,graph &g)
-{
-    static const int edgesPerFile = 150000000;
-    int edgesInCurrentFile = 0;
-    char currentFileSuffix = '1';
-    
-    std::ifstream in(filename.c_str());
-    
-    int noOfNodes,noOfEdges;
-
-    STXXL_MSG("Import started.");
-    
-   
-    in >> noOfNodes >> noOfEdges;
-    
-    g.edge_list.clear();
-    
-    for (int i=0; i<noOfEdges; i++) {
-	if (edgesInCurrentFile == edgesPerFile) {
-	    STXXL_MSG("File " << currentFileSuffix << " completed. Altogether "<< i << " edges read. ");
-	    edgesInCurrentFile = 0;
-	    currentFileSuffix++;
-	    in.close();
-	    in.open((filename + "." + currentFileSuffix).c_str());
-	}
-	
-	in >> source >> target >> weight;
-	
-	Edge = new edge(i+1,randomNodeID(),randomEdgeWeight());
-	g.edge_list.push_back(*Edge);
-	g.edge_list.push_back(*Edge);
-	g.edge_list.back().swap();
-
-	edgesInCurrentFile++;
-    }
-    STXXL_MSG("File "<<currentFileSuffix<<" completed. Altogether "<< noOfEdges << " edges read. ");
-
-    stxxl::sort(g.edge_list.begin(),g.edge_list.end(),cmp_edge_wt(),INTERNAL_MEMORY_FOR_SORTING);
-    edge_itr NewEnd = std::unique(g.edge_list.begin(),g.edge_list.end());
-    g.edge_list.resize(NewEnd - g.edge_list.begin());
-	
-    STXXL_MSG(" Edge list size: "<<g.edge_list.size()); 
-   
-}
 */
+void importFromFile(const std::string &filename,Graph &g)
+{
+    int noOfNodes,noOfEdges;
+    char temp;
+
+    std::ifstream in( filename.c_str() );
+    in >> temp >> noOfNodes >> noOfEdges;
+    STXXL_MSG("Reading graph from file");
+    Edge *edge;	
+    g.clearList();
+    g.setNoVertices(noOfNodes);
+    for (int i=0; i< noOfEdges; i++) {
+	unsigned int source,target,weight;
+	
+	in >> temp >> source >> target >> weight;
+	
+	edge =new Edge(source,target,weight);
+	g.addEdge(*edge);
+	delete edge;
+	
+    }
+
+    STXXL_MSG(" Edge list: "<<g.getEdgeListSize());
+     
+    stxxl::sort(g.getFirstEdge(),g.getEdgeListEnd(),myCmpSrc(),INTERNAL_MEMORY_FOR_SORTING);
+    Graph::edgeItr eItr,NewEnd;
+    NewEnd = g.getFirstEdge() ;
+
+	for(eItr=g.getFirstEdge()+1; !(g.checkEdgeListEnd(eItr)); eItr++)
+	{
+		if(!(*NewEnd == *eItr))
+		{
+			//STXXL_MSG(NewEnd->getSrc()<<" "<<NewEnd->getDst()<<" "<<NewEnd->getEdgeWt());
+			NewEnd++;
+			*NewEnd = *eItr;
+		}
+	}
+
+    NewEnd++;
+    //std::unique(g.getFirstEdge(),g.getEdgeListEnd());
+    g.resizeList(NewEnd,g.getFirstEdge());
+    stxxl::sort(g.getFirstEdge(),g.getEdgeListEnd(),myCmpEdgeWt(),INTERNAL_MEMORY_FOR_SORTING);
+   
+    g.generateVertexList();
+    g.setNoEdges(g.getEdgeListSize()/2);
+    STXXL_MSG("Vertices "<<g.getNoVertices()<<" Edge: "<<g.getNoEdges());
+}
+
 
 /**
    Exports an EdgeVector to an ostream.

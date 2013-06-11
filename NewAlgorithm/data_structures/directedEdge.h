@@ -23,6 +23,8 @@ public:
 		return (src == b.dst && dst == b.src && edgeWt==b.edgeWt);
 	}	
 
+	~DirectedEdge()
+	{}
 	
 	unsigned int getSrc() const;
 	void setSrc(unsigned int src);

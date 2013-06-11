@@ -27,7 +27,7 @@ struct pqNodeCmp
 
 struct pqRef
 {
-	;
+	
 	unsigned int nodeId;
 	unsigned int refNodeId;
 
