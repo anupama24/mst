@@ -3,6 +3,12 @@
 #endif 
 
 
+/***********************************************************************
+This class is for the base case i.e. Modified prim's algorithm 
+It contains a comparator myMstCmp which is used by the external priority queue
+Comparison is based on the edge weight
+*************************************************************************/
+
 class ExternalPrim
 {
 	

@@ -29,10 +29,20 @@ struct PQCmp
 
      pqVertex min_value() const
      {
-	 return pqVertex(NULL,0,std::numeric_limits <unsigned int >::max(),0,0);
+	 return pqVertex(Vertex(0),0,std::numeric_limits <unsigned int >::max(),0,0);
      }
 };
 
+struct structList
+{
+	DirectedEdge dirEdge;
+	unsigned int wt;
+	unsigned int pos;
+
+	structList(){}
+	structList(DirectedEdge e,unsigned int wt_,unsigned int pos_):dirEdge(e),wt(wt_),pos(pos_){}
+
+};
 
 class VertexContract
 {
@@ -41,29 +51,24 @@ public:
 	typedef typename DirectedGraph::dirEdgeItr edgeItr;
 	
 
-	typedef std::pair<DirectedEdge,edgeItr> structList;
 	typedef stxxl::VECTOR_GENERATOR<structList,VER_PAGE_SIZE,VER_NO_OF_PAGES,VER_BLOCK_SIZE>::result listType;
 	
 	typedef stxxl::VECTOR_GENERATOR<represVertex, PAGE_SIZE,NO_OF_PAGES,BLOCK_SIZE,stxxl::striping,PAGER>::result represVector;
 	typedef represVector::iterator represVerItr;
 
-private:
-	dirEdgeType list;
-	represVector resultVector;	
 
 public:
 
 	
 	VertexContract(){}
-	VertexContract(unsigned int num_e):list(2*num_e){}
 
 	void contractVertices(DirectedGraph &dag,represVector &res);
-	void createList(DirectedGraph &dag);
+	void createList(DirectedGraph::dirEdgeType &list,DirectedGraph &dag);
 	bool checkEdges (const DirectedEdge &a, const DirectedEdge &b)
 	{
 		return (a.getSrc() == b.getSrc() && a.getDst() >= b.getDst()); //||(src == b.dst && dst == b.src));// && edge_wt == b.edge_wt);
 	}
-		
+	
 	//void replaceEdge(graph &g);
 
 };
@@ -94,35 +99,32 @@ struct myCmpSec
 struct myCmpList
 {
 
-	VertexContract::dirEdgeType &parent;
-	myCmpList(VertexContract::dirEdgeType &l):parent(l)
-	{
-		//parent = l;
-	}
-
-	VertexContract::structList min_value() const { 
-		return VertexContract::structList(DirectedEdge(0,0,std::numeric_limits<unsigned int>::min()),parent.end()); };
+	structList min_value() const { 
+		return structList(DirectedEdge(0,0,0),std::numeric_limits<unsigned int>::min(),0); };
 	
-  	VertexContract::structList max_value() const { 
-		return VertexContract::structList(DirectedEdge(0,0,std::numeric_limits<unsigned int>::max()),parent.end()); };
+  	structList max_value() const { 
+		return structList(DirectedEdge(0,0,0),std::numeric_limits<unsigned int>::max(),0); };
 	
-	bool operator () (const VertexContract::structList & a, const VertexContract::structList & b) const {
-		return (a.first.getEdgeWt() < b.first.getEdgeWt() || (a.first.getEdgeWt() ==  b.first.getEdgeWt() && a.first.getSrc() < b.first.getSrc()) ||			 (a.first.getEdgeWt() ==  b.first.getEdgeWt() && a.first.getSrc() == b.first.getSrc() && a.first.getDst() < b.first.getDst())) ;
+	bool operator () (const structList & a, const structList & b) const {
+		return (a.wt < b.wt || (a.wt == b.wt && a.pos < b.pos));
 	}
 };
 
 
-void VertexContract::createList(DirectedGraph &dag)
+void VertexContract::createList(DirectedGraph::dirEdgeType &list,DirectedGraph &dag)
 {
-	edgeItr e_itr,end_itr;
-	//DirectedEdge *e;
-	
-	
-	dirEdgeType secCompList,firCompList,mergeList;
-	listType tempList;
-	structList temp;
 
-	list.clear();secCompList.clear();firCompList.clear();mergeList.clear();
+	STXXL_MSG("Inside createList");
+
+	
+	//DirectedEdge *e;
+	unsigned int i=0;
+	
+	dirEdgeType secCompList,firCompList;
+	listType tempList;
+	
+	list.clear();
+	secCompList.clear();firCompList.clear();
 	tempList.clear();
 	
 
@@ -137,19 +139,18 @@ void VertexContract::createList(DirectedGraph &dag)
 
 	edgeItr srcItr, dstItr;
 	
-	for(srcItr = firCompList.begin(), dstItr = secCompList.begin() ; dstItr!= secCompList.end();dstItr++)
+	for(srcItr = firCompList.begin(), dstItr = secCompList.begin(),i=0 ; dstItr!= secCompList.end();dstItr++)
 	{
-		
-		mergeList.push_back(*dstItr);
-		
-		temp.first = *dstItr;
-		temp.second= mergeList.end() -1;
-		tempList.push_back(temp);
+
+		structList elem(*dstItr,dstItr->getEdgeWt(),i++);
+		tempList.push_back(elem);
 
 		while(srcItr->getSrc() < dstItr->getDst()&& srcItr != firCompList.end())
 			srcItr++;
 		while(srcItr->getSrc() == dstItr->getDst()&& srcItr != firCompList.end())
-		{	mergeList.push_back(*srcItr);
+		{	//mergeList.push_back(*srcItr);
+			structList elem(*srcItr,dstItr->getEdgeWt(),i++);
+			tempList.push_back(elem);
 			srcItr++;
 		}
 	}
@@ -161,24 +162,19 @@ void VertexContract::createList(DirectedGraph &dag)
 		
 	}*/
 
+
+	secCompList.clear();firCompList.clear();
+
 	
 	//Sort list structure on edge weight
-	stxxl::sort(tempList.begin(),tempList.end(),myCmpList(mergeList),INTERNAL_MEMORY_FOR_SORTING);	
-				
+	stxxl::sort(tempList.begin(),tempList.end(),myCmpList(),INTERNAL_MEMORY_FOR_SORTING);	
+	
+			
 	for(listType::iterator itr=tempList.begin(); itr!=tempList.end();itr++)
 	{
-		e_itr = itr->second;
-		list.push_back(*e_itr);
-		e_itr++;
-		while(e_itr->getSrc() == itr->first.getDst() )
-		{
-			list.push_back(*e_itr);
-			e_itr++;
-			if((e_itr->equals(*(e_itr+1))))
-				break;
+		list.push_back(itr->dirEdge);
 		
-			
-		}
+
 	}
 			
 	
@@ -188,9 +184,13 @@ void VertexContract::createList(DirectedGraph &dag)
 		STXXL_MSG(" (" <<(e_itr->getSrc())<<", " <<(e_itr->getDst())<<", "<<(e_itr->getEdgeWt())<<") ");
 		
 	}*/
+
+
+
+	tempList.clear();
 	
 }
-void VertexContract::contractVertices(DirectedGraph &dag,represVector &res )
+void VertexContract::contractVertices(DirectedGraph &dag,represVector &resultVector )
 {
 
 	typedef stxxl::PRIORITY_QUEUE_GENERATOR < pqVertex, PQCmp, 10 * 1024 * 1024, PQUEUE_MAX_SIZE/sizeof(pqVertex)> pqGen;	
@@ -199,11 +199,11 @@ void VertexContract::contractVertices(DirectedGraph &dag,represVector &res )
 	
 	stxxl::read_write_pool<blockType> pool((PQUEUE_MEM_POOL / 2) / blockType::raw_size, (PQUEUE_MEM_POOL / 2) / blockType::raw_size);
         pqType pqFwdProcess(pool);
-	pqVertex *pqElem = NULL;
+	
 
+	dirEdgeType list;
 
-
-	createList(dag);
+	createList(list,dag);
 	edgeItr rootItr,e_itr,temp;
 	represVertex newRepres;
 	Vertex *v; 
@@ -213,38 +213,41 @@ void VertexContract::contractVertices(DirectedGraph &dag,represVector &res )
 	
 	for(rootItr=dag.getFirstRoot(),temp= dag.getFirstEdge(); !(dag.checkRootsEnd(rootItr)); rootItr++)
 	{
-		while(temp->getSrc() != rootItr->getSrc())
+		while(!(dag.checkEdgeListEnd(temp)) && temp->getSrc() != rootItr->getSrc())
 			temp++;
 		for(;!(dag.checkEdgeListEnd(temp)) && temp->getSrc() == rootItr->getSrc(); temp++)
 			{	
 				v = new Vertex(temp->getDst());
 				//STXXL_MSG("PQ push:"<<v->getVertexId()<<" "<<rootItr->getSrc()<<" "<<temp->getEdgeWt());
-				pqElem = new pqVertex(*v,rootItr->getSrc(),temp->getEdgeWt(),temp->getSrc(),temp->getDst());
-				pqFwdProcess.push(*pqElem);
+				pqVertex pqElem(*v,rootItr->getSrc(),temp->getEdgeWt(),temp->getSrc(),temp->getDst());
+				pqFwdProcess.push(pqElem);
+				delete v;
 			}
 		
 	}
 	
-	for(e_itr=list.begin();e_itr!=list.end()&&!pqFwdProcess.empty();e_itr++)
+	for(e_itr=list.begin();e_itr!=list.end()&&!pqFwdProcess.empty();)
 	{
 		assert(!pqFwdProcess.empty());
-		*pqElem=pqFwdProcess.top();
+		
+		pqVertex pqElem=pqFwdProcess.top();
 		pqFwdProcess.pop();
-		//STXXL_MSG("PQ pop:"<<(pqElem->v).getVertexId()<<" "<<pqElem->id<<" ");
+		//STXXL_MSG("PQ pop:"<<(pqElem.v).getVertexId()<<" "<<pqElem.id<<" ");
 
-		newRepres.first=(pqElem->v).getVertexId();
-		newRepres.second=pqElem->id;	
-		newRepres.blockingValue = (pqElem->v).getBlockingValue();
+		newRepres.first=(pqElem.v).getVertexId();
+		newRepres.second=pqElem.id;	
+		newRepres.blockingValue = (pqElem.v).getBlockingValue();
 		resultVector.push_back(newRepres);
 
 		for(temp=e_itr+1;temp!=list.end() && temp->getSrc() == e_itr->getDst() && !(checkEdges(*(temp-1),*temp));temp++)
 		{
 			v = new Vertex(temp->getDst());
-			//STXXL_MSG("PQ push:"<<v->getVertexId()<<" "<<pqElem->id<<" "<<temp->getEdgeWt());
-			pqElem = new pqVertex(*v,pqElem->id,temp->getEdgeWt(),temp->getSrc(),temp->getDst());
-			pqFwdProcess.push(*pqElem);
+			//STXXL_MSG("PQ push:"<<v->getVertexId()<<" "<<pqElem.id<<" "<<temp->getEdgeWt());
+			pqVertex pqElem(*v,pqElem.id,temp->getEdgeWt(),temp->getSrc(),temp->getDst());
+			pqFwdProcess.push(pqElem);
+			delete v;
 		}
-		e_itr=temp-1;
+		e_itr=temp;
 		//STXXL_MSG(" (" <<(e_itr->getSrc())<<", " <<(e_itr->getDst())<<", "<<(e_itr->getEdgeWt())<<") ");
 	
 	}
@@ -252,12 +255,12 @@ void VertexContract::contractVertices(DirectedGraph &dag,represVector &res )
 
 	while(!pqFwdProcess.empty())
 	{
-		*pqElem=pqFwdProcess.top();
+		pqVertex pqElem=pqFwdProcess.top();
 		pqFwdProcess.pop();
 	
-		newRepres.first=(pqElem->v).getVertexId();
-		newRepres.second=pqElem->id;
-		newRepres.blockingValue = (pqElem->v).getBlockingValue();
+		newRepres.first=(pqElem.v).getVertexId();
+		newRepres.second=pqElem.id;
+		newRepres.blockingValue = (pqElem.v).getBlockingValue();
 		resultVector.push_back(newRepres);
 	}
 			
@@ -266,7 +269,7 @@ void VertexContract::contractVertices(DirectedGraph &dag,represVector &res )
 	list.clear();
 	dag.clearList();
 	//pqFwdProcess.~priority_queue();
-	STXXL_MSG("Vertices contracted");
+	STXXL_MSG("Vertices contracted "<<resultVector.size());
 	
 
 	/*for(represVerItr itr = resultVector.begin(); itr!=resultVector.end();itr++)
@@ -276,7 +279,7 @@ void VertexContract::contractVertices(DirectedGraph &dag,represVector &res )
 	}*/
 
 
-	res = resultVector;
+	
 	//exit(0);
 	
 	

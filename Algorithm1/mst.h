@@ -1,7 +1,13 @@
 #ifndef MST_H
 #define MST_H
-#endif 
 
+/****************************************************************
+Class MST
+Members: mstTree - stxxl::vector containing edges of the mst tree
+	 noVertices - no of vertices in MST tree
+	 noEdges - no of edges in MST tree
+Methods: Methods to print the mst tree and add an edge to it
+****************************************************************/
 
 class MST
 {
@@ -13,14 +19,25 @@ class MST
 
 
 public:
-
+	//Constructor
 	MST(){}
 	MST(int num_v):mstTree(num_v),noVertices(num_v),noEdges(num_v-1)
 	{}
 
+	//Clears the mstTree vector
 	void clearMST()
 	{
 		mstTree.clear();
+	}
+	//Returns iterator to the beginning of mst tree vector
+	inline mstItr mstBegin()
+	{
+		return mstTree.begin();
+	}
+	//Returns iterator to the end of mst tree vector
+	inline mstItr mstEnd()
+	{
+		return mstTree.end();
 	}
 
 	unsigned int getMSTSize();
@@ -30,23 +47,16 @@ public:
 	void setNoEdges(unsigned int numE);
 	void printMST();
 	void addEdge(Edge &temp);
-	inline mstItr mstBegin()
-	{
-		return mstTree.begin();
-	}
-	inline mstItr mstEnd()
-	{
-		return mstTree.end();
-	}
-
 
 };
 
+//Returns size of the mst tree vector
 unsigned int MST::getMSTSize()
 {
 	return mstTree.size();
 }
 
+/** Getters and setters for noVertices and noEdges **/
 unsigned int MST::getNoVertices()
 {
 	return noVertices;
@@ -65,12 +75,13 @@ void MST::setNoEdges(unsigned int numE)
 	noEdges = numE;
 }
 
+/** Adds an edges to mst tree vector at the end */
 void MST::addEdge(Edge &temp)
 {
 	mstTree.push_back(temp);
 }
 
-
+/** Prints the mst tree */
 void MST::printMST()
 {
 	mstItr itr;
@@ -86,3 +97,4 @@ void MST::printMST()
 	}
 
 }
+#endif 

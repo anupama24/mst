@@ -18,24 +18,21 @@ void DirectedGraph::createGraph(Graph &g,MST &mst)
 	Graph::const_edgeItr minItr;
 	Graph::const_vertexItr vItr;
 	
-	DirectedEdge *e;
+	
 		
 	//g.printGraph();
 	
 	dirEdgeList.clear();
 
 
-
-	STXXL_MSG("Check");
-	
 	
 	for(vItr = g.getFirstVertex(); !(g.checkVertexListEnd(vItr)); vItr++)
 	{
 		if(!(g.checkEdgeListEnd(vItr->second)) && vItr->second->getEdgeWt() <= (vItr->first).getBlockingValue())
 		{
 			minItr=vItr->second;
-			e = new DirectedEdge(minItr->getDst(),minItr->getSrc(),minItr->getOrigDst(),minItr->getOrigSrc(),minItr->getEdgeWt());
-			dirEdgeList.push_back(*e);
+			DirectedEdge e(minItr->getDst(),minItr->getSrc(),minItr->getOrigDst(),minItr->getOrigSrc(),minItr->getEdgeWt());
+			dirEdgeList.push_back(e);
 		}
 		
 	
@@ -57,7 +54,7 @@ void DirectedGraph::detectCycle(MST &mst)
 		const_dirEdgeItr itr,NewEnd;
 		dirEdgeType cycleEdges;
 		dirEdgeType rev = dirEdgeList;
-		Edge *e;
+		
 
 		
 		
@@ -103,15 +100,15 @@ void DirectedGraph::detectCycle(MST &mst)
 				else
 				{	*result=*eItr;
 					result++;
-					e = new Edge(eItr->getOrigDst(), eItr->getOrigSrc(), eItr->getEdgeWt());
-					mst.addEdge(*e);
+					Edge e(eItr->getOrigDst(), eItr->getOrigSrc(), eItr->getEdgeWt());
+					mst.addEdge(e);
 				}
 			}
 			for(;eItr!=dirEdgeList.end();eItr++)
 			{	*result=*eItr;
 				result++;
-				e = new Edge(eItr->getOrigDst(), eItr->getOrigSrc(), eItr->getEdgeWt());
-				mst.addEdge(*e);
+				Edge e(eItr->getOrigDst(), eItr->getOrigSrc(), eItr->getEdgeWt());
+				mst.addEdge(e);
 			}
 			NewEnd = result;
 			dirEdgeList.resize(NewEnd - dirEdgeList.begin());
@@ -132,6 +129,7 @@ void DirectedGraph::detectCycle(MST &mst)
 			STXXL_MSG(" (" <<(itr->getSrc())<<", " <<(itr->getDst())<<", "<<(itr->getEdgeWt())<<") ");
 		}*/
 
+		STXXL_MSG("Number of edges: "<<noEdges<<std::endl<<" No of roots: "<<roots.size());
 		STXXL_MSG("Cycle detected");
 		STXXL_MSG("MST size: "<<mst.getMSTSize());
 	

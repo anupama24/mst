@@ -2,7 +2,14 @@
 #define DIREDGE_H
 #endif 
 
-
+/*******************************************************
+Class DirectedEdge
+Data members: src - source vertexof directed edge
+	      dst - destination vertex of directed edge
+	      edgeWt - Edge weight of the directed edge
+	      origSrc,origDst: Original source and destination of edge which is being stored as directed edge.
+	      data - Used as a buffer to make the structure of 128 bytes
+*********************************************************/
 class DirectedEdge 
 {
 	unsigned int src,dst;
@@ -40,18 +47,7 @@ public:
 		return origDst;
 	}
 
-	void swap()
-	{
-		int temp = src;
-		src = dst;
-		dst = temp;
-		temp = origSrc;
-		origSrc = origDst;
-		origDst =temp;
-	}
-	
-
-	
+		
 };
 
 //Getters and Setters

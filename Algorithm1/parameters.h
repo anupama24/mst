@@ -15,6 +15,7 @@ class Parameters
 	_inputSpecified = false;
 	_randomGraph = false;
 	_completeGraph = false;
+	_otherGraph = false;
 	_noOfNodes = std::numeric_limits<unsigned int>::max();
 	_noOfEdges = std::numeric_limits<unsigned int>::max();
 	_importInputFilename = "";
@@ -78,6 +79,24 @@ class Parameters
 		_inputSpecified = true;
 		continue;
 	    }
+
+	    if ( ! strcmp(argv[index], "-g") ) {
+		if ( _inputSpecified ) {
+		    std::cerr << "Argument '-g' contradicts another argument !"
+			      << std::endl << std::endl;
+		    usage(-1);
+		}
+		if ( argc - (++index) < 1 ) {
+		    std::cerr << "-g requires one additional argument !"
+			      << std::endl << std::endl;
+		    usage(-1);
+		}
+		_importInputFilename = argv[index++];
+		_noOfNodes = noOfNodesInFile(_importInputFilename,_noOfEdges);
+		_otherGraph = true;
+		_inputSpecified = true;
+		continue;
+	    }
 	    
 	    
 	    if ( ! strcmp(argv[index], "-o") ) {
@@ -96,13 +115,14 @@ class Parameters
 	}
 	
 	if ( ! _inputSpecified ) {
-	    std::cerr << "One of the arguments '-h', '-r', '-i', '-o' "<< "is required !"<< std::endl << std::endl;
+	    std::cerr << "One of the arguments '-h', '-r', '-i', '-g','-o' "<< "is required !"<< std::endl << std::endl;
 	    usage(-1);
 	}
     }
 
     bool randomGraph() const {return _randomGraph;}
     bool completeGraph() const {return _completeGraph;}
+    bool otherGraph() const {return _otherGraph;}
     unsigned int noOfNodes() const {return _noOfNodes;}
     unsigned int noOfEdges() const {return _noOfEdges;}
     
@@ -113,6 +133,7 @@ class Parameters
     bool _inputSpecified;
     bool _randomGraph;
     bool _completeGraph;
+    bool _otherGraph;
     unsigned int _noOfNodes;
     unsigned int _noOfEdges;
 
@@ -129,6 +150,8 @@ class Parameters
   		  << "\t -c   generate a complete graph with the given number of nodes" << std::endl
 		  << std::endl
 		  << "\t -i   specify file in order to import the input graph"
+		  << std::endl << std::endl
+  		  << "\t -g   specify file in order to import a different input graph from file"
 		  << std::endl << std::endl
 		  << "\t -o   specify output file for the resulting mst"
 		  << std::endl << std::endl;

@@ -14,7 +14,8 @@
 int main(int argc, char *argv[])
 {
 
-	Parameters param(argc, argv); // parse the command-line arguments
+	// parse the command-line arguments
+	Parameters param(argc, argv); 
 	
 	if(param.noOfNodes() == std::numeric_limits<unsigned int>::max() || param.noOfEdges() ==std::numeric_limits<unsigned int>::max())
 	{
@@ -27,21 +28,24 @@ int main(int argc, char *argv[])
 	{
 		STXXL_MSG("Generating random graph");
 		inputGraph.generateRandomGraph();
-		inputGraph.printGraph();
+		//inputGraph.printGraph();
 
 	}
 	else if (param.completeGraph())
 	{
 		STXXL_MSG("Generating complete graph");
 		inputGraph.generateCompleteGraph();
-		inputGraph.printGraph();
+		//inputGraph.printGraph();
 	}
 			
 	else if (param.importInputFilename() != "") 
 	{
 		// import graph from file
 		STXXL_MSG("Import graph" << std::endl );
-		importEdgeVector( param.importInputFilename(),inputGraph );
+		if(param.otherGraph())
+			importFromFile(param.importInputFilename(),inputGraph );
+		else
+			importEdgeVector( param.importInputFilename(),inputGraph );
 	}
 
 	// export input graph
